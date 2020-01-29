@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klayout-macro>
+ <description/>
+ <version/>
+ <category/>
+ <prolog/>
+ <epilog/>
+ <doc/>
+ <autorun>false</autorun>
+ <autorun-early>false</autorun-early>
+ <shortcut/>
+ <show-in-menu>false</show-in-menu>
+ <group-name/>
+ <menu-path/>
+ <interpreter>ruby</interpreter>
+ <dsl-interpreter-name/>
+ <text>module MyMacro
+  
+  include RBA
+
+  app = Application.instance
+  mw = app.main_window
+  unless lv = mw.current_view
+    raise "Shape Statistics: No view selected"
+  end
+  cell = lv.active_cellview.cell
+  layout = cell.layout
+  frame_src = layout.layer(0, 0)
+  am_src = layout.layer(1, 0) # allignment mark
+  bd_src = layout.layer(2,0) # boron dope
+  co_src = layout.layer(3, 0) # contact
+  al_src = layout.layer(4, 0) 
+  pad_src = layout.layer(5, 0)
+    
+  unless layout.layer_indices.include? 7
+    puts 'conversion start'
+    # YSS source layout definitions
+
+    # OpenRule destination layout definitions
+    cnt_dst = layout.layer(7, 0)
+    layout.move_layer(co_src, cnt_dst) 
+    diff_dst = layout.layer(3, 0) 
+    layout.move_layer(bd_src, diff_dst)
+    ml1_dst = layout.layer(8,0)
+    layout.move_layer(al_src, ml1_dst)
+    via1_dst = layout.layer(9, 0) 
+    layout.move_layer(pad_src, via1_dst)
+    ml2_dst= layout.layer(10, 0)
+    frame_dst = layout.layer(14, 0)
+    layout.move_layer(frame_src, frame_dst)
+    #pad_dst = layout.layer(20, 0)
+
+    puts 'conversion end'
+  else
+    #  derived layers
+    puts 'derive layers creation'
+    parea_dst = layout.layer(18, 0)
+  end
+  # text = input(13, 0)
+  # res = input(15, 0)
+  # cap = input(16, 0)
+  # dio = input(17, 0)
+
+  
+  #  lv.remove_unused_layers
+end
+</text>
+</klayout-macro>
