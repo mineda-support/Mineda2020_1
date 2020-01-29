@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <technology>
- <name>Minimal2020_1</name>
+ <name>Mineda2020_1</name>
  <description/>
  <dbu>0.001</dbu>
  <base-path/>
- <original-base-path>/home/seijirom/.klayout/salt/Mineda2020_1/tech</original-base-path>
+ <original-base-path>/home/anagix/.klayout/salt/Mineda2020_1/tech</original-base-path>
  <layer-properties_file>mineda2020_1.lyp</layer-properties_file>
  <add-other-layers>true</add-other-layers>
  <reader-options>
