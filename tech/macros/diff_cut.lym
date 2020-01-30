@@ -28,7 +28,7 @@ diff = input(3, 0)
 cnt = input(7, 0)
 ml1 = input(8, 0)
 via1 = input(9, 0) 
-ml2= input(10, 0)
+ml2 = input(10, 0)
 frame = input(14, 0)
 parea = input(18, 0)
 pad = input(20, 0)
@@ -46,7 +46,7 @@ frame.output(14, 0)
 parea.output(18, 0)
 pad.output(20, 0)
 
-puts 'done'
+puts source.path.sub('.gds', '_converted.gds') + ' created'
 EOH
 engine.instance_eval commands, 'diff_cut'
 engine._finish

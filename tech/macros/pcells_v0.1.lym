@@ -582,7 +582,7 @@ module MyLib
     def initialize  
       
       # 説明を設定
-      self.description = "Mineda2020_1"
+      self.description = "PCells"
       
       # PCell宣言を作成する
       # layout.register_pcell("Resistor", Resistor::new)
@@ -595,7 +595,7 @@ module MyLib
 
       # "MyLib"という名前で登録します。
       # その名前のライブラリがすでに存在していた場合は、その時点で置き換えられます。
-      register("PCells")
+      register("PCells_Mineda2020_1")
     end
   end
 
