@@ -14,7 +14,7 @@
  <menu-path>tools_menu.lvs.end</menu-path>
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>lvs-dsl-xml</dsl-interpreter-name>
- <text># OpenRule1um lvs rule for Analog v1.11 Nov. 16, 2019 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs rule v0.1 Jan. 30, 2020 copy left by S. Moriyama (Anagix Corporation)
 deep
 report_lvs
 
@@ -50,9 +50,14 @@ dm_via12 = input(106, 0)
 
 bulk        = polygon_layer
 
+pdiff = diff &amp; parea
+
 # Computed layers
 #pol_not_res  = pol - res
 #pol_in_res   = pol &amp; res
+
+diff_not_res = diff - res
+diff_in_res = diff &amp; res
 
 #hpol_not_res  = hpol - res
 #hpol_in_res   = hpol &amp; res
@@ -66,7 +71,6 @@ bulk        = polygon_layer
 #diff_in_nwl = diff &amp; nwl
 #pdiff       = diff_in_nwl - narea
 
-pdiff = diff &amp; parea
 
 #pdiff       = diff_in_nwl &amp; parea
 #pgate       = pdiff &amp; pol_not_res
@@ -127,6 +131,13 @@ extract_devices(mos4("NMOS"), { "SD" =&gt; nsd, "G" =&gt; lv_ngate, "W" =&gt; bu
                                 "tS" =&gt; nsd, "tD" =&gt; nsd, "tG" =&gt;pol_not_res, "tW" =&gt; bulk })
 =end
 
+sheet_rho = 10e3
+model_name = "RES"
+#bbox = (res | cnt).extents
+#cap_layer = bbox - res
+cap_layer = res.sized(0.5.um) &amp; diff
+extract_devices(resistor(model_name, sheet_rho), {"R" =&gt;  diff_in_res, "C" =&gt; cap_layer,
+                                                                'tA' =&gt; diff_not_res, 'tB'=&gt;diff_not_res  })# &amp; pol &amp; via1 &amp; ml1})
 extract_devices(mos4("PMOS"), { "SD" =&gt; psd, "G" =&gt; lv_pgate, "W" =&gt; bulk, 
                                 "tS" =&gt; psd, "tD" =&gt; psd, "tG" =&gt;ml1, "tW" =&gt; bulk })
 
@@ -137,6 +148,7 @@ connect(psd,     cnt)
 #connect(nsd,     cnt)
 #connect(pol,    cnt)
 #connect(pol_not_res, cnt)
+connect(diff_not_res, psd)
 #connect(hpol_not_res, cnt)
 #connect(pol_overlapping_cap, cnt)
 #connect(cap, cnt)

@@ -15,7 +15,7 @@
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>drc-dsl-xml</dsl-interpreter-name>
  <text># Mineda2020_1 Rule for YSS process 
-## ver0.l : 2020/1/28: Seijiro Moriyama seijiro.moriyama@anagix.com
+## ver0.l : 2020/1/30: Seijiro Moriyama seijiro.moriyama@anagix.com
 
 report("Output database")
 
@@ -59,8 +59,8 @@ puts 'Check Overlap'
 #dm_nscn_ovlp = dm_nscn.raw.merged(2); dm_nscn_ovlp.output("nsubcont overlap")
 
 puts 'Check Stacked Con/Via'
-cnt_ns = cnt.and(via1).not_in(via1); cnt_ns.output("cont-via1 non-stack")
-via1_ns = via1.and(via2).not_in(via2); via1_ns.output("via1-via2 non-stack")
+# cnt_ns = cnt.and(via1).not_in(via1); cnt_ns.output("cont-via1 non-stack")
+#via1_ns = via1.and(via2).not_in(via2); via1_ns.output("via1-via2 non-stack")
 
 puts 'Check Width'
 
