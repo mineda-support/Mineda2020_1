@@ -16,16 +16,16 @@
  <dsl-interpreter-name/>
  <text># coding: utf-8
 # Mineda2020_1 PCells v0.1 Jan. 29, 2020 copy left by S. Moriyama (Anagix Corporation)
-module MyLib
+module Mineda2020_1
 
   include RBA
 
-  #  MyLib.constants.member?(:Nch) &amp;&amp; remove_const(:Nch)
-  MyLib.constants.member?(:Pch) &amp;&amp; remove_const(:Pch)
-  #  MyLib.constants.member?(:R_poly) &amp;&amp; remove_const(:R_poly)
-  #  MyLib.constants.member?(:HR_poly) &amp;&amp; remove_const(:HR_poly)
-  #  MyLib.constants.member?(:Capacitor) &amp;&amp; remove_const(:Capacitor)
-  MyLib.constants.member?(:PCells) &amp;&amp; remove_const(:PCells)
+  #  Mineda2020_1.constants.member?(:Nch) &amp;&amp; remove_const(:Nch)
+  Mineda2020_1.constants.member?(:Pch) &amp;&amp; remove_const(:Pch)
+  #  Mineda2020_1.constants.member?(:R_poly) &amp;&amp; remove_const(:R_poly)
+  #  Mineda2020_1.constants.member?(:HR_poly) &amp;&amp; remove_const(:HR_poly)
+  #  Mineda2020_1.constants.member?(:Capacitor) &amp;&amp; remove_const(:Capacitor)
+  Mineda2020_1.constants.member?(:PCells) &amp;&amp; remove_const(:PCells)
   
   # The PCell declaration for Mineda2020_1 MOSFET
   
@@ -577,7 +577,7 @@ module MyLib
     end
 =end
   
-  class MyLib &lt; Library
+  class Mineda2020_1 &lt; Library
     
     def initialize  
       
@@ -593,14 +593,14 @@ module MyLib
       #      layout.register_pcell("Capacitor", Capacitor::new)
       #      layout.register_pcell("CPIP", CPIP::new)
 
-      # "MyLib"という名前で登録します。
+      # "Mineda2020_1"という名前で登録します。
       # その名前のライブラリがすでに存在していた場合は、その時点で置き換えられます。
       register("PCells_Mineda2020_1")
     end
   end
 
   # ライブラリをインスタンス化して登録する
-  MyLib::new
+  Mineda2020_1::new
 end
 </text>
 </klayout-macro>
