@@ -73,13 +73,15 @@ module Mineda2020_1
     def produce_impl_core
       gw = (w/layout.dbu).to_i
       gl = (l/layout.dbu).to_i
-      s = 8.0.um # via size (fixed)
+      s = 12.0.um # via size (fixed)
       vs = (s/layout.dbu).to_i
 
       grid = 4.0.um
       u1 = (grid/layout.dbu).to_i
       metal1width = 8.0.um
       m1w = (metal1width/layout.dbu).to_i
+      metal2width = 8.0.um
+      m2w = (metal2width/layout.dbu).to_i   
       
       #      nwl_index = layout.insert_layer(LayerInfo::new(1, 0))
       diff_index = layout.insert_layer(LayerInfo::new(3, 0))
@@ -100,13 +102,14 @@ module Mineda2020_1
       offset = 0
       (n+1).times{|i|
         x = vs/2 + offset
-        create_path(m2_index, x, vs+u1, x, vs+u1+gw, vs, 0, 0)
+        create_path(m1_index, x, vs+u1, x, vs+u1+gw, vs, 0, 0) # s/d m1
+        create_path(cnt_index, x, vs+u1, x, vs+u1+gw, vs-u1, -u1/2, -u1/2) 
         #        create_dcont(dcont_index, x, vs+u1, x, vs+u1+gw, vs)  
-        x = x + vs/2 + gl/2
-        create_path(m1_index, x, vs+u1, x, vs+u1+gw, gl, vs/2, vs/2) if i &lt; n
-        offset = offset + vs + gl   
+        x = x + vs/2 + gl/2 + u1
+        create_path(m1_index, x, vs+u1, x, vs+u1+gw, gl, vs/2, u1/2) if i &lt; n # gate
+        offset = offset + vs + gl +2*u1  
       }    
-      create_box diff_index, 0, vs+u1, offset -gl, vs+u1+gw
+      create_box diff_index, 0, vs+u1, offset -gl-vs, vs+u1+gw # s/d diffusion
       
       x = y = vs/2
       # insert_cell via_index, x, y, cell
@@ -114,7 +117,7 @@ module Mineda2020_1
                  parea: parea_index, 
                  m1: m1_index, m2:m2_index, via: via_index,
                  cnt: cnt_index}
-      yield indices, 0, 0, vs*2+gl, (vs+u1)*2+gw, vs, u1, gl
+      yield indices, 0, 0, vs*2+gl, (vs+u1)*2+gw, vs, u1, gl, m1w, m2w
     end
     
     def create_path index, x1, y1, x2, y2, w, be, ee
@@ -141,10 +144,18 @@ module Mineda2020_1
       end
     end
     
-    def insert_cell via_index, x, y
+    def insert_cell indices, index, x, y, vs, u1
       #      via = instantiate via_index, x, y
       #      inst = cell.insert(via)
-      create_box via_index, x-10, y-19, x+10, y+10
+      vu2 = vs/2 - u1/2
+      create_box indices[index], x-vu2, y-vu2, x+vu2, y+vu2
+      case index
+      when :via
+        create_box indices[:m1], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+        create_box indices[:m2], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+      when :cnt
+        create_box indices[:m1], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+      end
     end
     
     def instantiate index, x, y
@@ -167,45 +178,47 @@ module Mineda2020_1
     end  
     
     def produce_impl # PMOS
-      produce_impl_core {|indices, x1, y1, x2, y2, vs, u1, gl|
+      produce_impl_core {|indices, x1, y1, x2, y2, vs, u1, gl, m1w, m2w|
         # create pcont
-        insert_cell indices[:cnt], x1+vs/2  +3*u1/10, y1+vs/2
-        insert_cell indices[:via], x1+vs/2  +3*u1/10, y1+vs/2
-        create_path2 indices[:m2], x1+vs/2, y1+vs/2, x1+vs+u1/2, y1+vs/2, x1+vs+u1/2, y1+vs, u1, 0, 0
+        #insert_cell indices, :cnt, x1+vs/2, y1+vs/2, vs, u1
+        #insert_cell indices, :via, x1+vs/2, y1+vs/2, vs, u1
+        #create_path indices[:m1], x1+vs/2, y1+vs/2, x1+vs+gl+u1, y1+vs/2, m1w, 0, 0
+        insert_cell indices, :cnt, x1+vs/2+gl+u1/2, y1+vs/2+u1/2, vs, u1
+        insert_cell indices, :via, x1+vs/2+gl+u1/2, y1+vs/2+u1/2, vs, u1
         offset = 0
         top = nil
         bottom = nil
         prev_m1 = nil
         (n+1).times{|i|
-          x = offset + vs/2
-          create_path indices[:m1], prev_m1-vs/2-gl, y1+u1/2+vs/2, x-vs/2, y1+u1/2+vs/2, u1, 0, 0 if prev_m1
+          x = offset  + vs/2
+          if prev_m1
+            create_path indices[:m2], prev_m1-gl, y1+u1/2+vs/2, x-vs-u1/2, y1+u1/2+vs/2, m1w, 0, 0
+            insert_cell indices, :via, x-gl, y1+u1/2+vs/2, vs, u1
+          end
           prev_m1 = x  if i &gt;=1   
           if i % 2 == 0
             # first s/d and via
-            #            insert_cell indices[:via], x, y2-vs/2
-            create_path indices[:m1], x, y2-vs-u1, x, y2-vs/2, u1, 0, 0
+            insert_cell indices, :via, x, y2-vs/2, vs, u1
+            create_path indices[:m1], x, y2-vs-u1, x, y2-vs/2, m1w, m1w/2, m1w/2
             if top
-              create_path indices[:m1], top, y2-vs/2, x, y2-vs/2, u1, 0, 0
+              create_path indices[:m1], top, y2-vs/2, x, y2-vs/2, m1w, m1w/2, m1w/2
             end
             top = x
           else
             # second s/d and via
-            if i == 1
-              if n == 1
-                insert_cell indices[:via], x +3*u1/10, y1+vs/2
-              else
-                insert_cell indices[:via], x +3*u1/10, y1-u1+vs/2
-              end
+            if n == 1
+              y = y1+vs/2
             else
-              insert_cell indices[:via], x, y1-u1+vs/2
+              y = y1+vs/2-m2w-u1
             end
-            create_path indices[:m1], x, y1-u1+vs/2, x, y1+vs+u1, u1, 0, 0
+            insert_cell indices, :via, x, y, vs, u1
+            create_path indices[:m1], x, y+u1, x, y1+vs+m2w, m1w, m1w/2, m1w/2
             if bottom
-              create_path indices[:m1], bottom, y1-u1+vs/2, x, y1 -u1+vs/2, u1, 0, 0
+              create_path indices[:m1], bottom, y, x, y, m1w, m1w/2, m1w/2
             end
             bottom = x
           end
-          offset = offset + vs + gl
+          offset = offset + vs + gl + 2*u1
         }
         # nsubcont and via
         if n % 2 == 0
@@ -213,11 +226,11 @@ module Mineda2020_1
         else
           y = y2 - vs/2
         end
-        x = offset - vs/2 -gl + u1/2
-        insert_cell indices[:nsubcont], x, y
-        insert_cell indices[:via], x, y
+        x = offset - vs -gl - u1/2
+        insert_cell indices, :cnt, x, y, vs, u1
+        insert_cell indices, :via, x, y, vs, u1
         
-        create_box indices[:parea], x1-u1/2, y1+vs+u1/2, offset-gl +u1/2, y2-vs-u1/2
+        create_box indices[:parea], x1-u1/2, y1+vs+u1/2, offset-gl -vs +u1/2, y2-vs-u1/2
       }
     end
   end    # PCellを配置するライブラリ 
