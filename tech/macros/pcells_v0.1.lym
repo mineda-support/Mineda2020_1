@@ -85,6 +85,7 @@ module Mineda2020_1
       diff_index = layout.insert_layer(LayerInfo::new(3, 0))
       pol_index = layout.insert_layer(LayerInfo::new(5, 0))
       m1_index = layout.insert_layer(LayerInfo::new(8, 0))
+      m2_index = layout.insert_layer(LayerInfo::new(10, 0))
       parea_index = layout.insert_layer(LayerInfo::new(18, 0))
       #      narea_index = layout.insert_layer(LayerInfo::new(19, 0))
 =begin
@@ -99,19 +100,19 @@ module Mineda2020_1
       offset = 0
       (n+1).times{|i|
         x = vs/2 + offset
-        create_path(m1_index, x, vs+u1, x, vs+u1+gw, vs, 0, 0)
+        create_path(m2_index, x, vs+u1, x, vs+u1+gw, vs, 0, 0)
         #        create_dcont(dcont_index, x, vs+u1, x, vs+u1+gw, vs)  
         x = x + vs/2 + gl/2
-        create_path(pol_index, x, vs+u1, x, vs+u1+gw, gl, vs/2, vs/2) if i &lt; n
+        create_path(m1_index, x, vs+u1, x, vs+u1+gw, gl, vs/2, vs/2) if i &lt; n
         offset = offset + vs + gl   
       }    
       create_box diff_index, 0, vs+u1, offset -gl, vs+u1+gw
       
       x = y = vs/2
       # insert_cell via_index, x, y, cell
-      indices = {pol: pol_index, diff: diff_index, 
+      indices = {diff: diff_index, 
                  parea: parea_index, 
-                 m1: m1_index, via: via_index,
+                 m1: m1_index, m2:m2_index, via: via_index,
                  cnt: cnt_index}
       yield indices, 0, 0, vs*2+gl, (vs+u1)*2+gw, vs, u1, gl
     end
@@ -170,15 +171,15 @@ module Mineda2020_1
         # create pcont
         insert_cell indices[:cnt], x1+vs/2  +3*u1/10, y1+vs/2
         insert_cell indices[:via], x1+vs/2  +3*u1/10, y1+vs/2
-        create_path2 indices[:pol], x1+vs/2, y1+vs/2, x1+vs+u1/2, y1+vs/2, x1+vs+u1/2, y1+vs, u1, 0, 0
+        create_path2 indices[:m2], x1+vs/2, y1+vs/2, x1+vs+u1/2, y1+vs/2, x1+vs+u1/2, y1+vs, u1, 0, 0
         offset = 0
         top = nil
         bottom = nil
-        prev_pol = nil
+        prev_m1 = nil
         (n+1).times{|i|
           x = offset + vs/2
-          create_path indices[:pol], prev_pol-vs/2-gl, y1+u1/2+vs/2, x-vs/2, y1+u1/2+vs/2, u1, 0, 0 if prev_pol
-          prev_pol = x  if i &gt;=1   
+          create_path indices[:m1], prev_m1-vs/2-gl, y1+u1/2+vs/2, x-vs/2, y1+u1/2+vs/2, u1, 0, 0 if prev_m1
+          prev_m1 = x  if i &gt;=1   
           if i % 2 == 0
             # first s/d and via
             #            insert_cell indices[:via], x, y2-vs/2
