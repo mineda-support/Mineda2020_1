@@ -203,12 +203,6 @@ module Mineda2020_1
         #       prev_m1 = nil
         (n+1).times{|i|
           x = offset  + vs/2
-=begin
-             if prev_m1
-               create_path indices[:m2], prev_m1-gl-u1, y1+u1/2+vs/2, x-vs-u1/2, y1+u1/2+vs/2, m1w, 0, 0
-               # insert_cell indices, :via, x-gl, y1+u1/2+vs/2, vs, u1
-             end
-=end
           prev_m1 = x  if i &gt;=1   
           if i % 2 == 0
             # first s/d and via
@@ -301,6 +295,7 @@ module Mineda2020_1
       space = 4.0.um # space between Diff
       sp = (space/layout.dbu).to_i
       grid = 4.0.um
+      u1 = (grid/layout.dbu).to_i
       metal1width = 10.0.um
       m1w = (metal1width/layout.dbu).to_i
       
@@ -326,7 +321,7 @@ module Mineda2020_1
       # pcont_index = library_cell('pcont', 'OpenRule1um', layout)
       prev_x = nil
       for i in 0..n-1
-        offset = vs/2 + (sp+(w/layout.dbu).to_i)*i
+        offset = vs/2 + (sp+rw)*i
         r = sl
         if rl - sl*(i+1) &lt; 0
           r = rl - sl*i
@@ -334,30 +329,45 @@ module Mineda2020_1
         puts "offset=#{offset}, r=#{r} for i=#{i}"
 
         if i % 2 == 0
-          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
-          cell.shapes(diff_index).insert(Path::new(points, rw, vs, vs))
-          cell.shapes(res_index).insert(Path::new(points, rw, vs/4, vs/4))
-          [[offset, vs/2], [offset, r+vs]].each{|x, y|
-            #insert_via_pcont via_index, pcont_index, x-juts/2, y, rw, vs
-            cell.shapes(m1_index).insert(Box::new(x-rw/2, y-vs/2, x+rw/2, y+vs/2))
-            cell.shapes(m2_index).insert(Box::new(x-rw/2, y-vs/2, x+rw/2, y+vs/2))
-          }
+          x = offset
+          points = [Point::new(x, vs), Point::new(x, vs+r)]  
+          cell.shapes(res_index).insert(Path::new(points, rw, 0, 0))                 
+          if i == 0 
+            points = [Point::new(x, u1), Point::new(x, vs+r)]
+            y = vs/2
+            cell.shapes(m1_index).insert(Box::new(x-vs/2, y-vs/2, x+vs/2, y+vs/2))
+            cell.shapes(m2_index).insert(Box::new(x-vs/2, y-vs/2, x+vs/2, y+vs/2))
+          elsif i == n-1
+            points = [Point::new(x, vs), Point::new(x, vs+r-u1)]
+            y =  vs/2+sl
+            cell.shapes(m1_index).insert(Box::new(x-vs/2, y-vs/2, x+vs/2, y+vs/2))
+            cell.shapes(m2_index).insert(Box::new(x-vs/2, y-vs/2, x+vs/2, y+vs/2))
+          end
+          cell.shapes(diff_index).insert(Path::new(points, rw, 0, 0))
+       
           if prev_x
-            points = [Point::new(offset, vs/2), Point::new(prev_x, vs/2)]
-            cell.shapes(m1_index).insert(Path::new(points, m1w, m1w/2, m1w/2))
+            y = vs - rw/2
+            points = [Point::new(x, y), Point::new(prev_x, y)]
+            cell.shapes(diff_index).insert(Path::new(points, rw, rw/2, rw/2))
+            cell.shapes(res_index).insert(Path::new(points, rw, rw/2, rw/2))
           end  
         else
-          points = [Point::new(offset, vs+(sl-r)), Point::new(offset, vs/2+sl)]
-          cell.shapes(diff_index).insert(Path::new(points, rw, vs, vs))
-          cell.shapes(res_index).insert(Path::new(points, rw, vs/4, vs/4))
-          [[offset, vs/2+(sl-r)], [offset, sl+vs]].each{|x, y|
-            #insert_via_pcont via_index, pcont_index, x+juts/2, y, rw, vs
-            cell.shapes(m1_index).insert(Box::new(x-rw/2, y-vs/2, x+rw/2, y+vs/2))
-            cell.shapes(m2_index).insert(Box::new(x-rw/2, y-vs/2, x+rw/2, y+vs/2))
-          }
+          points = [Point::new(offset, vs+(sl-r)), Point::new(offset, vs+sl)]
+          if i == n-1
+            points = [Point::new(offset, vs+(sl-r)-u1), Point::new(offset, vs+sl)]
+            x = offset
+            y =  vs+(sl-r)-vs/2
+            cell.shapes(m1_index).insert(Box::new(x-vs/2, y-vs/2, x+vs/2, y+vs/2))
+            cell.shapes(m2_index).insert(Box::new(x-vs/2, y-vs/2, x+vs/2, y+vs/2))
+          end
+          cell.shapes(diff_index).insert(Path::new(points, rw, 0, 0))
+          cell.shapes(res_index).insert(Path::new(points, rw, 0, 0))
           if prev_x
-            points = [Point::new(offset, sl+vs), Point::new(prev_x, sl+vs)]
-            cell.shapes(m1_index).insert(Path::new(points, m1w, m1w/2, m1w/2))
+            x = offset
+            y = vs + sl + rw/2
+            points = [Point::new(x, y), Point::new(prev_x, y)]
+            cell.shapes(diff_index).insert(Path::new(points, rw, rw/2, rw/2))
+            cell.shapes(res_index).insert(Path::new(points, rw, rw/2, rw/2))
           end
         end
         prev_x = offset  
@@ -398,8 +408,8 @@ module Mineda2020_1
     include RBA
     def initialize
       super
-      param(:l, TypeDouble, "Resistor length", :default =&gt; 10.0.um)
-      param(:w, TypeDouble, "Resistor width", :default =&gt; 1.0.um)
+      param(:l, TypeDouble, "Resistor length", :default =&gt; 40.0.um)
+      param(:w, TypeDouble, "Resistor width", :default =&gt; 10.0.um)
       param(:n, TypeInt, "Number of maximum stripes", :default =&gt; 1)
 
       param(:rval, TypeDouble, "Resistor value", :default =&gt; 0, :hidden=&gt; true)
