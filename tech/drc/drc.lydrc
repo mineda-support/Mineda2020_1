@@ -15,7 +15,7 @@
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>drc-dsl-xml</dsl-interpreter-name>
  <text># Mineda2020_1 Rule for YSS process 
-## ver0.l : 2020/1/30: Seijiro Moriyama seijiro.moriyama@anagix.com
+## ver0.2 : 2020/2/3: Seijiro Moriyama seijiro.moriyama@anagix.com
 
 report("Output database")
 
@@ -64,6 +64,8 @@ puts 'Check Stacked Con/Via'
 
 puts 'Check Width'
 
+ml1_w = ml1.width(10.0.um); ml1_w.output("ML1 width &lt; 10")
+ml2_w = ml2.width(10.0.um); ml2_w.output("ML2 width &lt; 10")
 via1_w = via1.width(8.um); via1_w.output("Via1 width &lt; 8")
 cnt_w = cnt.width(8.um); cnt_w.output("cont width &lt; 8")
 
