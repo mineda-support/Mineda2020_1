@@ -28,7 +28,7 @@ module Mineda2020_1
   Mineda2020_1.constants.member?(:PCells) &amp;&amp; remove_const(:PCells)
   
   class MinedaPCell &lt;PCellDeclarationHelper
-
+    include RBA
     def insert_cell indices, index, x, y, vs, u1
       #      via = instantiate via_index, x, y
       #      inst = cell.insert(via)
