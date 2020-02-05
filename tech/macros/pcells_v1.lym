@@ -309,7 +309,7 @@ module Mineda2020_1
       m1_index = layout.insert_layer(LayerInfo::new(8, 0))
       m2_index = layout.insert_layer(LayerInfo::new(10, 0))
       res_index = layout.insert_layer(LayerInfo::new(15, 0))
-      via_index = library_cell('Via', 'OpenRule1um', layout)
+      via_index = layout.insert_layer(LayerInfo::new(9, 0))
       indices = {diff: diff_index, m1: m1_index, m2: m2_index, 
                  via: via_index, cnt: cnt_index, res: res_index}
       # pcont_index = library_cell('pcont', 'OpenRule1um', layout)
