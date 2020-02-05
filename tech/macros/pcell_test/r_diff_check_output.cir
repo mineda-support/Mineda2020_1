@@ -1,0 +1,19 @@
+* Created by KLayout
+
+* cell R_diff
+.SUBCKT R_diff
+* device instance $1 r0 *1 27,20 RES
+R$1 2 1 130000
+.ENDS R_diff
+
+* cell R_diff$2
+.SUBCKT R_diff$2
+* device instance $1 r0 *1 26,56 RES
+R$1 2 1 320000
+.ENDS R_diff$2
+
+* cell R_diff$1
+.SUBCKT R_diff$1
+* device instance $1 r0 *1 41,22 RES
+R$1 2 1 240000
+.ENDS R_diff$1

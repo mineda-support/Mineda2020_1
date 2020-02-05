@@ -56,7 +56,7 @@ pdiff = diff &amp; parea
 #pol_not_res  = pol - res
 #pol_in_res   = pol &amp; res
 
-diff_not_res = diff - res
+diff_not_res = diff - res - pdiff
 diff_in_res = diff &amp; res
 
 #hpol_not_res  = hpol - res
@@ -75,10 +75,13 @@ diff_in_res = diff &amp; res
 #pdiff       = diff_in_nwl &amp; parea
 #pgate       = pdiff &amp; pol_not_res
 
-pgate = pdiff &amp; ml1
+pgate = (pdiff &amp; ml1).not_interacting(cnt) 
 psd         = pdiff - pgate
+#pdiff_cut = pdiff - pgate.sized(-2.um)
+#diff_under_gate = diff - res - pdiff_cut
 
 #ntie        = diff_in_nwl &amp; narea
+ntie = diff_not_res &amp; cnt
 # hv_pgate    = pgate &amp; thickox
 # lv_pgate    = pgate - hv_pgate
 
@@ -148,12 +151,13 @@ connect(psd,     cnt)
 #connect(nsd,     cnt)
 #connect(pol,    cnt)
 #connect(pol_not_res, cnt)
-connect(diff_not_res, psd)
+#connect(diff_under_gate, psd)
+connect(diff_not_res, cnt)
 #connect(hpol_not_res, cnt)
 #connect(pol_overlapping_cap, cnt)
 #connect(cap, cnt)
 
-#connect(cnt, ntie)
+connect(cnt, ntie)
 #connect(nwl,   ntie)
 #connect(cnt, ptie)
 connect(cnt, ml1)
@@ -162,6 +166,7 @@ connect(via1,     ml2)
 
 # Global connections
 #connect_global(ptie, "SUBSTRATE")
+connect_global(ntie, "SUBSTRATE")
 connect_global(bulk, "SUBSTRATE")
 
 ext_name = File.extname source.path

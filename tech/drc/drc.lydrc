@@ -70,7 +70,7 @@ via1_w = via1.width(8.um); via1_w.output("Via1 width &lt; 8")
 cnt_w = cnt.width(8.um); cnt_w.output("cont width &lt; 8")
 
 puts 'Check Enclose'
-pdiff_e = pdiff.enclosing(cnt, 2.um); pdiff_e.output("cnt enclosure in pdiff &lt; 2.0")
+diff_e = diff.enclosing(cnt, 2.um); diff_e.output("cnt enclosure in diff &lt; 2.0")
 
 puts 'Check MOS gate extension'
 # geomExtension(POL, DIFF, 1, "POL gate extension &lt; 1.0") =&gt;
