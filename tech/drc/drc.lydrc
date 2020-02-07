@@ -15,7 +15,7 @@
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>drc-dsl-xml</dsl-interpreter-name>
  <text># Mineda2020_1 Rule for YSS process 
-## ver0.2 : 2020/2/3: Seijiro Moriyama seijiro.moriyama@anagix.com
+## ver0.3: 2020/2/7: Seijiro Moriyama seijiro.moriyama@anagix.com
 
 report("Output database")
 
@@ -47,7 +47,7 @@ dm_via1 = input(105, 0)
 dm_via2 = input(106, 0)
 
 pdiff = diff &amp; parea
-pmos = pdiff &amp; pol
+# pmos = pdiff &amp; pol
 
 puts 'Check GAP'
 

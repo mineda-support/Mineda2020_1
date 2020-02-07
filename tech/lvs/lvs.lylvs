@@ -14,7 +14,7 @@
  <menu-path>tools_menu.lvs.end</menu-path>
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>lvs-dsl-xml</dsl-interpreter-name>
- <text># Mineda2020_1 lvs rule v1.0 Feb. 6, 2020 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs rule v1.1 Feb. 7, 2020 copy left by S. Moriyama (Anagix Corporation)
 deep
 report_lvs
 
@@ -134,7 +134,7 @@ extract_devices(mos4("NMOS"), { "SD" =&gt; nsd, "G" =&gt; lv_ngate, "W" =&gt; bu
                                 "tS" =&gt; nsd, "tD" =&gt; nsd, "tG" =&gt;pol_not_res, "tW" =&gt; bulk })
 =end
 
-sheet_rho = 10e3
+sheet_rho = 7.5e3
 model_name = "RES"
 #bbox = (res | cnt).extents
 #cap_layer = bbox - res
