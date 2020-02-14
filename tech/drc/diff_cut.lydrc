@@ -26,8 +26,15 @@ pad = input(20, 0)
 
 gate = ml1.interacting(diff) - ml1.interacting(cnt)
 
-new_diff = diff - (diff &amp; gate.sized(-2.um))
+# for debugging
+ml1cnt = ml1.interacting(cnt)
+ml1cnt.output(5, 0)
 
+ml1diff = ml1.interacting(diff)
+ml1diff.output(6,0)
+
+new_diff = diff - (diff &amp; gate.sized(-2.um))
+#gate.output(5, 0)
 new_diff.output(3, 0) 
 cnt.output(7, 0)
 ml1.output(8, 0)
