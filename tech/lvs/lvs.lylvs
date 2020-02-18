@@ -134,7 +134,7 @@ extract_devices(mos4("NMOS"), { "SD" =&gt; nsd, "G" =&gt; lv_ngate, "W" =&gt; bu
                                 "tS" =&gt; nsd, "tD" =&gt; nsd, "tG" =&gt;pol_not_res, "tW" =&gt; bulk })
 =end
 
-sheet_rho = 7.0e3
+sheet_rho = 700
 model_name = "RES"
 #bbox = (res | cnt).extents
 #cap_layer = bbox - res

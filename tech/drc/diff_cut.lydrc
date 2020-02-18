@@ -24,14 +24,18 @@ frame = input(14, 0)
 parea = input(18, 0)
 pad = input(20, 0)
 
-gate = ml1.interacting(diff) - ml1.interacting(cnt)
 
 # for debugging
-ml1cnt = ml1.interacting(cnt)
-ml1cnt.output(5, 0)
 
-ml1diff = ml1.interacting(diff)
-ml1diff.output(6,0)
+ml1_in_parea = ml1 &amp; parea
+
+ml1diff = ml1_in_parea.interacting(diff)
+# ml1diff.output(6,0)
+
+ml1cnt = ml1_in_parea.interacting(cnt) 
+# ml1cnt.output(5, 0)
+
+gate = ml1diff - ml1cnt
 
 new_diff = diff - (diff &amp; gate.sized(-2.um))
 #gate.output(5, 0)
