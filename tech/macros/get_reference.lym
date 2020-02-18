@@ -62,12 +62,13 @@ module MyMacro
         w=$4.to_f
         m=$6.to_i
         others = $5.upcase
-        if others =~/ ([AP][SD] *=\S+)/ 
-          param = $1
+   #     if others =~/ ([AP][SD] *=\S+)/ 
+    #      param = $1
+         param = 'special case'
          #l.sub! w_value, "w=#{w*m}u"
          l = "#{upto_l_value}w=#{w*m}u m=#{m}"
           puts "Caution for #{name}: #{w_value} replaced with w=#{w*m}u because m=#{m} and includes #{param}"
-        end
+     #   end
       end
     elsif circuit_top.nil? &amp;&amp; l=~/^\.subckt *(\S+)/
       circuit_top = $1
