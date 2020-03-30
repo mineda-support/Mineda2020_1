@@ -15,7 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: utf-8
-# Mineda2020_1 PCells v0.42 Feb. 14, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.5 Mar. 26, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -106,7 +106,7 @@ module Mineda2020_1
     
     def produce_impl_core
       gw = (w/layout.dbu).to_i
-      gl = (l/layout.dbu).to_i
+      gl = ((l+4.0.um)/layout.dbu).to_i
       s = 12.0.um # via size (fixed)
       vs = (s/layout.dbu).to_i
 
@@ -275,35 +275,9 @@ module Mineda2020_1
       # 変形を決定するために、図形のバウンディングボックスの中心を使用します。
       Trans.new(shape.bbox.center)
     end
-    
+
     def produce_impl
-      produce_impl_core
-    end
-    
-    def produce_impl_core
-      rw = (w/layout.dbu).to_i
-      rrl = (l/layout.dbu).to_i
-      via_size = 12.0.um # via size (fixed)
-      vs = (via_size/layout.dbu).to_i
-      sp = (s/layout.dbu).to_i
-      grid = 4.0.um
-      u1 = (grid/layout.dbu).to_i
-      metal1width = 10.0.um
-      m1w = (metal1width/layout.dbu).to_i
-      rl = rrl - (sp+rw)*(n-1)
-      sl = (rl/n/u1).to_i*u1
-      if sl*n + (sp+rw)*(n-1) == rrl
-        r = 0
-      else
-        sl = sl + u1
-        r = rrl - sl*(n-1) - (sp+rw)*(n-1)
-        if r &lt;= 0
-          rl = rrl - sp*(n-2)
-          set_n n - 1
-        end
-      end
-      puts "rrl = #{rrl}, rl = #{rl}, n = #{n}, sp=#{sp}, sl = #{sl}, r = #{r}"
-      # pol_index = layout.insert_layer(LayerInfo::new(5, 0))
+     # pol_index = layout.insert_layer(LayerInfo::new(5, 0))
       diff_index = layout.insert_layer(LayerInfo::new(3, 0))
       cnt_index = layout.insert_layer(LayerInfo::new(7,0))
       m1_index = layout.insert_layer(LayerInfo::new(8, 0))
@@ -312,46 +286,76 @@ module Mineda2020_1
       via_index = layout.insert_layer(LayerInfo::new(9, 0))
       indices = {diff: diff_index, m1: m1_index, m2: m2_index, 
                  via: via_index, cnt: cnt_index, res: res_index}
-      # pcont_index = library_cell('pcont', 'OpenRule1um', layout)
+      if ho
+        produce_impl_core(1, indices)
+      else
+        produce_impl_core(0, indices)
+      end
+    end 
+     
+    def produce_impl_core(header_outside, indices)
+      rw = (w/layout.dbu).to_i
+      rrl = (l/layout.dbu).to_i
+      via_size = 12.0.um # via size (fixed)
+      vs = (via_size/layout.dbu).to_i
+      sp = (s/layout.dbu).to_i
+      ms = (m/layout.dbu).to_i
+      grid = 4.0.um
+      u1 = (grid/layout.dbu).to_i
+      metal1width = 10.0.um
+      m1w = (metal1width/layout.dbu).to_i
+      rw_ho = rw*header_outside
+      rl = rrl - (sp+rw)*(n-1) -rw_ho
+      sl = [(rl/n/u1).to_i*u1, ms-2*rw].min
+      if sl*n + (sp+rw)*(n-1) == rrl
+        r = 0
+      else
+        sl = [sl + u1, ms-2*rw].min
+        r = rrl - sl*(n-1) - (sp+rw)*(n-1)
+        if r &lt;= 0 &amp;&amp; sl &gt; ms-2*rw
+          rl = rrl - sp*(n-2)
+          set_n n - 1
+        end
+      end
+      puts "rrl = #{rrl}, rl = #{rl}, n = #{n}, sp=#{sp}, sl = #{sl}, r = #{r}"
       prev_x = nil
       for i in 0..n-1
         offset = vs/2 + (sp+rw)*i
         r = sl
-        if rl - sl*(i+1) &lt; 0
+        if i == n - 1 # rl - sl*(i+1) &lt; 0
           r = rl - sl*i
         end
         puts "offset=#{offset}, r=#{r} for i=#{i}"
-
         if i % 2 == 0
           x = offset
-          points = [Point::new(x, vs), Point::new(x, vs+r)]  
-          cell.shapes(res_index).insert(Path::new(points, rw, 0, 0))                 
+          points = [Point::new(x, vs), Point::new(x, vs+r)]   
           if i == 0 
-            points = [Point::new(x, 0), Point::new(x, vs+r)]
-            y = vs/2
+            points = [Point::new(x, -rw_ho), Point::new(x, vs+r)]
+            y = vs/2-rw_ho
             insert_cell indices, :via, x, y, vs, u1
             insert_cell indices, :cnt, x, y, vs, u1
             insert_cell indices, :diff, x, y, vs, u1
           end
           if i == n-1
             #points = [Point::new(x, vs), Point::new(x, vs+r+vs)]
-            points = [Point::new(x, 0), Point::new(x, vs+r+vs)]
+            points = [Point::new(x, vs), Point::new(x, vs+r+vs)]
             y =  vs+r+vs/2
             insert_cell indices, :via, x, y, vs, u1
             insert_cell indices, :cnt, x, y, vs, u1
             insert_cell indices, :diff, x, y, vs, u1
           end
-          cell.shapes(diff_index).insert(Path::new(points, rw, 0, 0))
+          cell.shapes(indices[:res]).insert(Path::new(points, rw, 0, 0)) 
+          cell.shapes(indices[:diff]).insert(Path::new(points, rw, 0, 0))
        
           if prev_x
             y = vs - rw/2
             points = [Point::new(x, y), Point::new(prev_x, y)]
-            cell.shapes(diff_index).insert(Path::new(points, rw, rw/2, rw/2))
-            cell.shapes(res_index).insert(Path::new(points, rw, rw/2, rw/2))
+            cell.shapes(indices[:diff]).insert(Path::new(points, rw, rw/2, rw/2))
+            cell.shapes(indices[:res]).insert(Path::new(points, rw, rw/2, rw/2))
           end  
         else
           points = [Point::new(offset, vs+(sl-r)), Point::new(offset, vs+sl)]
-          cell.shapes(res_index).insert(Path::new(points, rw, 0, 0))
+          cell.shapes(indices[:res]).insert(Path::new(points, rw, 0, 0))
           if i == n-1
             points = [Point::new(offset, sl-r), Point::new(offset, vs+sl)]
             x = offset
@@ -360,29 +364,20 @@ module Mineda2020_1
             insert_cell indices, :cnt, x, y, vs, u1
             insert_cell indices, :diff, x, y, vs, u1
           end
-          cell.shapes(diff_index).insert(Path::new(points, rw, 0, 0))
+          cell.shapes(indices[:diff]).insert(Path::new(points, rw, 0, 0))
 
           if prev_x
             x = offset
             y = vs + sl + rw/2
             points = [Point::new(x, y), Point::new(prev_x, y)]
-            cell.shapes(diff_index).insert(Path::new(points, rw, rw/2, rw/2))
-            cell.shapes(res_index).insert(Path::new(points, rw, rw/2, rw/2))
+            cell.shapes(indices[:diff]).insert(Path::new(points, rw, rw/2, rw/2))
+            cell.shapes(indices[:res]).insert(Path::new(points, rw, rw/2, rw/2))
           end
         end
         prev_x = offset  
       end
     end
-    
-    def library_cell name, libname, layout
-      if cell = layout.cell(name)
-        return cell.cell_index
-      else
-        lib = Library::library_by_name libname
-        cell_index = lib.layout.cell_by_name(name)
-        proxy_index = layout.add_lib_cell(lib, cell_index)
-      end
-    end
+
 =begin       
        def insert_via_pcont via_index, pcont_index, x, y, rw, vs
          nv = (rw/vs).to_i
@@ -412,7 +407,9 @@ module Mineda2020_1
       param(:l, TypeDouble, "Resistor length", :default =&gt; 40.0.um)
       param(:w, TypeDouble, "Resistor width", :default =&gt; 10.0.um)
       param(:n, TypeInt, "Number of maximum stripes", :default =&gt; 1)
-      param(:s, TypeInt, "Space between stripes", :default =&gt; 4.0.um)
+      param(:s, TypeDouble, "Space between stripes", :default =&gt; 4.0.um)
+      param(:m, TypeDouble, "Maximum stripe length", :default =&gt; 1000.0.um)
+      param(:ho, TypeBoolean, "Headers outside?", :default =&gt; false)
       param(:rval, TypeDouble, "Resistor value", :default =&gt; 0, :hidden=&gt; true)
     end
     def display_text_impl
@@ -432,14 +429,10 @@ module Mineda2020_1
            l/n &gt; 80.0 &amp;&amp; set_n(n+1)
          end
 =end
-      sheet_resistance = 7.0e3
+      sheet_resistance = 700.0
       set_rval(sheet_resistance * l / w)
     end
-    def produce_impl
-      produce_impl_core
-    end
   end
-
 =begin     
      class Capacitor &lt; PCellDeclarationHelper
        
