@@ -3,17 +3,17 @@
 * cell R_diff
 .SUBCKT R_diff
 * device instance $1 r0 *1 27,20 RES
-R$1 2 1 130000
+R$1 1 2 9100
 .ENDS R_diff
 
 * cell R_diff$2
 .SUBCKT R_diff$2
 * device instance $1 r0 *1 26,56 RES
-R$1 2 1 320000
+R$1 1 2 22400
 .ENDS R_diff$2
 
 * cell R_diff$1
 .SUBCKT R_diff$1
-* device instance $1 r0 *1 41,22 RES
-R$1 2 1 240000
+* device instance $1 r0 *1 48,22 RES
+R$1 1 2 14644
 .ENDS R_diff$1

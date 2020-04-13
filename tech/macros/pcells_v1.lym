@@ -328,7 +328,8 @@ module Mineda2020_1
         puts "offset=#{offset}, r=#{r} for i=#{i}"
         if i % 2 == 0
           x = offset
-          points = [Point::new(x, vs), Point::new(x, vs+r)]   
+          points = [Point::new(x, vs-rw_ho), Point::new(x, vs+r)]
+          cell.shapes(indices[:res]).insert(Path::new(points, rw, 0, 0))    
           if i == 0 
             points = [Point::new(x, -rw_ho), Point::new(x, vs+r)]
             y = vs/2-rw_ho
@@ -344,7 +345,6 @@ module Mineda2020_1
             insert_cell indices, :cnt, x, y, vs, u1
             insert_cell indices, :diff, x, y, vs, u1
           end
-          cell.shapes(indices[:res]).insert(Path::new(points, rw, 0, 0)) 
           cell.shapes(indices[:diff]).insert(Path::new(points, rw, 0, 0))
        
           if prev_x
