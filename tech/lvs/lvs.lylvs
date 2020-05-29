@@ -14,7 +14,7 @@
  <menu-path>tools_menu.lvs.end</menu-path>
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>lvs-dsl-xml</dsl-interpreter-name>
- <text># Mineda2020_1 lvs rule v1.4 Apr. 6, 2020 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs rule v1.5 May. 29, 2020 copy left by S. Moriyama (Anagix Corporation)
 #target(source.path.sub('.gds', '_pgate.gds')) # debug output
 deep
 report_lvs
@@ -82,7 +82,7 @@ psd         = pdiff - pgate
 #diff_under_gate = diff - res - pdiff_cut
 
 #ntie        = diff_in_nwl &amp; narea
-ntie = diff_not_res &amp; cnt
+ntie = cnt - diff
 # hv_pgate    = pgate &amp; thickox
 # lv_pgate    = pgate - hv_pgate
 
@@ -182,9 +182,13 @@ connect(via1,  ml2)
 connect_global(ntie, "SUBSTRATE")
 connect_global(bulk, "SUBSTRATE")
 
+sdir = File.dirname source.path
 ext_name = File.extname source.path
 target = File.basename(source.path).sub(ext_name, '')
-reference = "#{target}_reference.cir"
+reference = File.join(sdir, "#{target}_reference.cir")
+output = File.join sdir, "#{target}_output.cir"
+lvs_work = File.join(sdir, 'lvs_work')
+Dir.mkdir lvs_work unless File.directory? lvs_work
 
 if File.exist? target+'.yaml'
   require 'yaml'
@@ -192,36 +196,35 @@ if File.exist? target+'.yaml'
   if File.mtime(ref['netlist']) &lt; File.mtime(ref['schematic']) 
     raise "netlist file '#{ref['netlist']}' is outdated!\nPlease update netlist and run get_reference again!"
   end
-  if File.mtime(reference) &lt; File.mtime(ref['netlist']) 
+  if File.exist?(reference) &amp;&amp; (File.mtime(reference) &lt; File.mtime(ref['netlist']))
     raise "Please run get_reference because netlist file '#{ref['netlist']}'is modified"
   end
-  end
-output = "#{target}_output.cir"
+end
+#output = "#{target}_output.cir"
 
-schematic reference if File.exist? reference
 # -------------------------------------------------------------------
 # Netlist and compare
 
-# Netlist normalization
-#netlist.simplify
 netlist.purge
 # Hierarchy alignment (flatten out unmatched cells)
 
-#schematic.combine_devices
-#align
 target_netlist(output, write_spice, "Created by KLayout")
-if File.exist? "lvs_work/#{target}_rc_ext_settings.rb"
-  load "lvs_work/#{target}_rc_ext_settings.rb"
-  rc_ext_settings
-end
+
+if File.exist? reference
+  schematic reference
+  if File.exist? "#{lvs_work}/#{target}_rc_ext_settings.rb"
+    load "#{lvs_work}/#{target}_rc_ext_settings.rb"
+    rc_ext_settings
+  end
 # Netlist vs. netlist
-compare if File.exist? reference
-slink = "lvs_work/#{output}.txt"
-File.delete slink if File.exist?(slink)
-if /mswin32|mingw/ =~ RUBY_PLATFORM
-  system "WSL cd lvs_work; ln -s ../#{output}.txt"
-else
-  File.symlink "../#{output}", slink if (File.directory?('lvs_work') &amp;&amp; !File.symlink?(slink))
+  compare
+  slink = "#{lvs_work}/#{File.basename output}.txt"
+  File.delete slink if File.exist?(slink)
+  if /mswin32|mingw/ =~ RUBY_PLATFORM
+    system "WSL cd #{lvs_work}; ln -s ../#{File.basename output}.txt"
+  else
+    File.symlink "../#{File.basename output}", slink if (File.directory?(lvs_work) &amp;&amp; !File.symlink?(slink))
+  end
 end
 </text>
 </klayout-macro>
