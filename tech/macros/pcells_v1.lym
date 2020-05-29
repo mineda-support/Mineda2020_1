@@ -17,7 +17,7 @@
  <text># coding: utf-8
 
 # coding: utf-8
-# Mineda2020_1 PCells v0.6 Apr. 22, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.61 May. 29, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -250,7 +250,7 @@ module Mineda2020_1
         x = offset - vs -gl - u1/2
         insert_cell indices, :cnt, x, y, vs, u1
         insert_cell indices, :via, x, y, vs, u1
-        insert_cell indices, :diff, x, y, vs, u1
+        # insert_cell indices, :diff, x, y, vs, u1
         
         create_box indices[:parea], x1-u1/2, y1+vs+u1/2, offset-gl -vs +u1+u1/2, y2-vs-u1/2
       }
