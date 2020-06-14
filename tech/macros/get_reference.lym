@@ -114,7 +114,6 @@ module MyMacro
       f.puts "  netlist.flatten_circuit 'Pch*'"
       f.puts 'end'
     }
-    puts 'lvs_work/set_same_circuits.rb created for ' + cells.inspect
   end
   unless File.exist? "lvs_work/#{target}_rc_ext_settings.rb"
     File.open("lvs_work/#{target}_rc_ext_settings.rb", 'w'){|f|

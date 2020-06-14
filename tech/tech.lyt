@@ -2,9 +2,10 @@
 <technology>
  <name>Mineda2020_1</name>
  <description/>
+ <group/>
  <dbu>0.001</dbu>
  <base-path/>
- <original-base-path>/home/seijirom/.klayout/salt/Mineda2020_1/tech</original-base-path>
+ <original-base-path>C:\Users\seijirom\KLayout\salt\Mineda2020_1\tech</original-base-path>
  <layer-properties_file>mineda2020_1.lyp</layer-properties_file>
  <add-other-layers>true</add-other-layers>
  <reader-options>
@@ -27,6 +28,8 @@
    <net-property-name>#1</net-property-name>
    <produce-inst-names>true</produce-inst-names>
    <inst-property-name>#1</inst-property-name>
+   <produce-pin-names>false</produce-pin-names>
+   <pin-property-name>#1</pin-property-name>
    <produce-cell-outlines>true</produce-cell-outlines>
    <cell-outline-layer>OUTLINE</cell-outline-layer>
    <produce-placement-blockages>true</produce-placement-blockages>
@@ -52,6 +55,21 @@
    <routing-suffix/>
    <routing-datatype>0</routing-datatype>
   </lefdef>
+  <mebes>
+   <invert>false</invert>
+   <subresolution>true</subresolution>
+   <produce-boundary>true</produce-boundary>
+   <num-stripes-per-cell>64</num-stripes-per-cell>
+   <num-shapes-per-cell>0</num-shapes-per-cell>
+   <data-layer>1</data-layer>
+   <data-datatype>0</data-datatype>
+   <data-name>DATA</data-name>
+   <boundary-layer>0</boundary-layer>
+   <boundary-datatype>0</boundary-datatype>
+   <boundary-name>BORDER</boundary-name>
+   <layer-map>layer_map()</layer-map>
+   <create-other-layers>true</create-other-layers>
+  </mebes>
   <dxf>
    <dbu>0.001</dbu>
    <unit>1</unit>
@@ -73,6 +91,16 @@
    <create-other-layers>true</create-other-layers>
    <keep-layer-names>false</keep-layer-names>
   </cif>
+  <mag>
+   <lambda>1</lambda>
+   <dbu>0.001</dbu>
+   <layer-map>layer_map()</layer-map>
+   <create-other-layers>true</create-other-layers>
+   <keep-layer-names>false</keep-layer-names>
+   <merge>true</merge>
+   <lib-paths>
+   </lib-paths>
+  </mag>
  </reader-options>
  <writer-options>
   <gds2>
@@ -100,6 +128,11 @@
    <dummy-calls>false</dummy-calls>
    <blank-separator>false</blank-separator>
   </cif>
+  <mag>
+   <lambda>0</lambda>
+   <tech/>
+   <write-timestamp>true</write-timestamp>
+  </mag>
  </writer-options>
  <connectivity>
  </connectivity>
