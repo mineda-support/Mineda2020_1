@@ -14,7 +14,7 @@
  <menu-path/>
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
- <text># Mineda2020_1 lvs preprocessor v1.5 June 26, 2020 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs preprocessor v1.51 June 29, 2020 copy left by S. Moriyama (Anagix Corporation)
 require 'fileutils'
 require 'yaml'
 module MyMacro
@@ -89,7 +89,7 @@ module MyMacro
   if /mswin32|mingw/ =~ RUBY_PLATFORM
     File.link reference, slink
   else
-    File.symlink reference, slink
+    File.symlink "../#{File.basename reference}", slink
   end
 
   puts "#{reference} created under #{Dir.pwd}"
