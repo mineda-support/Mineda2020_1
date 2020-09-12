@@ -1,3 +1,7 @@
+* 2020/08/18 Ver1.1 CGS0 CGD0 CJ
+* Bsim3 model 
+* By C.takahashi
+
 .MODEL YSS_PMOS PMOS
 + LEVEL = 49
 + VERSION = 3.3
@@ -55,7 +59,6 @@
 + PDIBLCB = 0
 + DROUT = 0.56
 + PVAG = 0
-
 #+ PSCBE1 = 0
 + PSCBE2 = 2e-4
 + DELTA = 0.01
@@ -65,8 +68,10 @@
 + BETA0 = 30
 + RSH = 0
 + XPART = 0
-+ CGSO = 0
-+ CGDO = 0
++ CGSO = 1.22E-9
++ CGDO = 1.22E-9
++ CJ   = 2.04e-8
++ MJ   = 0.5
 + CJSWG = 5E-010
 + MJSWG = 0.33
 + PBSWG = 1

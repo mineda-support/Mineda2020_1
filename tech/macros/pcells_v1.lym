@@ -15,9 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: utf-8
-
-# coding: utf-8
-# Mineda2020_1 PCells v0.61 May. 29, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.62 Sep. 11, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -294,7 +292,23 @@ module Mineda2020_1
         produce_impl_core(0, indices)
       end
     end 
-     
+    
+    def create_contacts indices, w, x0, y, vs, u1
+      n = (w/vs).to_i
+      if n == 0
+        insert_cell indices, :via, x0, y, vs, u1
+        insert_cell indices, :cnt, x0, y, vs, u1
+        insert_cell indices, :diff, x0, y, vs, u1
+      else
+       pitch = vs + (w - vs*n)/(n-1)
+       (x0-w/2+vs/2).step(x0+w/2, pitch){|x|
+         insert_cell indices, :via, x, y, vs, u1
+         insert_cell indices, :cnt, x, y, vs, u1
+         insert_cell indices, :diff, x, y, vs, u1
+       }
+      end
+    end
+    
     def produce_impl_core(header_outside, indices)
       rw = (w/layout.dbu).to_i
       rrl = (l/layout.dbu).to_i
@@ -335,17 +349,19 @@ module Mineda2020_1
           if i == 0 
             points = [Point::new(x, -rw_ho), Point::new(x, vs+r)]
             y = vs/2-rw_ho
-            insert_cell indices, :via, x, y, vs, u1
-            insert_cell indices, :cnt, x, y, vs, u1
-            insert_cell indices, :diff, x, y, vs, u1
+            #insert_cell indices, :via, x, y, vs, u1
+            #insert_cell indices, :cnt, x, y, vs, u1
+            #insert_cell indices, :diff, x, y, vs, u1
+            create_contacts indices, rw, x, y, vs, u1
           end
           if i == n-1
             #points = [Point::new(x, vs), Point::new(x, vs+r+vs)]
-            points = [Point::new(x, vs), Point::new(x, vs+r+vs)]
+            points = [Point::new(x, 0), Point::new(x, vs+r+vs)]
             y =  vs+r+vs/2
-            insert_cell indices, :via, x, y, vs, u1
-            insert_cell indices, :cnt, x, y, vs, u1
-            insert_cell indices, :diff, x, y, vs, u1
+            #insert_cell indices, :via, x, y, vs, u1
+            #insert_cell indices, :cnt, x, y, vs, u1
+            #insert_cell indices, :diff, x, y, vs, u1
+            create_contacts indices, rw, x, y, vs, u1
           end
           cell.shapes(indices[:diff]).insert(Path::new(points, rw, 0, 0))
        
@@ -362,9 +378,10 @@ module Mineda2020_1
             points = [Point::new(offset, sl-r), Point::new(offset, vs+sl)]
             x = offset
             y = vs+sl-r-vs/2
-            insert_cell indices, :via, x, y, vs, u1
-            insert_cell indices, :cnt, x, y, vs, u1
-            insert_cell indices, :diff, x, y, vs, u1
+            #insert_cell indices, :via, x, y, vs, u1
+            #insert_cell indices, :cnt, x, y, vs, u1
+            #insert_cell indices, :diff, x, y, vs, u1
+            create_contacts indices, rw, x, y, vs, u1
           end
           cell.shapes(indices[:diff]).insert(Path::new(points, rw, 0, 0))
 
