@@ -14,8 +14,8 @@
  <menu-path/>
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
- <text># coding: utf-8
-# Mineda2020_1 PCells v0.63 Sep. 11, 2020 copy left by S. Moriyama (Anagix Corporation)
+ <text># coding: cp932
+# Mineda2020_1 PCells v0.64 Sep. 11, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -24,7 +24,8 @@ module Mineda2020_1
   Mineda2020_1.constants.member?(:Pch) &amp;&amp; remove_const(:Pch)
   Mineda2020_1.constants.member?(:R_diff) &amp;&amp; remove_const(:R_diff)
   #  Mineda2020_1.constants.member?(:HR_poly) &amp;&amp; remove_const(:HR_poly)
-  #  Mineda2020_1.constants.member?(:Capacitor) &amp;&amp; remove_const(:Capacitor)
+  Mineda2020_1.constants.member?(:MIM_cap) &amp;&amp; remove_const(:MIM_cap)
+  Mineda2020_1.constants.member?(:Diff_cap) &amp;&amp; remove_const(:Diff_cap)  
   Mineda2020_1.constants.member?(:PCells) &amp;&amp; remove_const(:PCells)
   
   class MinedaPCell &lt;PCellDeclarationHelper
@@ -123,14 +124,6 @@ module Mineda2020_1
       m1_index = layout.insert_layer(LayerInfo::new(8, 0))
       m2_index = layout.insert_layer(LayerInfo::new(10, 0))
       parea_index = layout.insert_layer(LayerInfo::new(18, 0))
-      #      narea_index = layout.insert_layer(LayerInfo::new(19, 0))
-=begin
-         via_index = library_cell('Via', 'OpenRule1um', layout)
-         dcont_index = library_cell('dcont', 'OpenRule1um', layout)
-         pcont_index = library_cell('pcont', 'OpenRule1um', layout)
-         nsubcont_index = library_cell('nsubcont', 'OpenRule1um', layout)
-         psubcont_index = library_cell('psubcont', 'OpenRule1um', layout) 
-=end
       via_index = layout.insert_layer(LayerInfo::new(9, 0))
       cnt_index = layout.insert_layer(LayerInfo::new(7,0))
       indices = {diff: diff_index, parea: parea_index, 
@@ -169,16 +162,6 @@ module Mineda2020_1
       x = y = vs/2
       # insert_cell via_index, x, y, cell
       yield indices, 0, 0, vs*2+gl, (vs+u1)*2+gw+u1/4, vs, u1, gl, m1w, m2w, l
-    end
-    
-    def library_cell name, libname, layout
-      if cell = layout.cell(name)
-        return cell.cell_index
-      else
-        lib = Library::library_by_name libname
-        cell_index = lib.layout.cell_by_name(name)
-        proxy_index = layout.add_lib_cell(lib, cell_index)
-      end
     end
   end
   
@@ -277,7 +260,7 @@ module Mineda2020_1
     end
 
     def produce_impl
-     # pol_index = layout.insert_layer(LayerInfo::new(5, 0))
+      # pol_index = layout.insert_layer(LayerInfo::new(5, 0))
       diff_index = layout.insert_layer(LayerInfo::new(3, 0))
       cnt_index = layout.insert_layer(LayerInfo::new(7,0))
       m1_index = layout.insert_layer(LayerInfo::new(8, 0))
@@ -300,12 +283,12 @@ module Mineda2020_1
         insert_cell indices, :cnt, x0, y, vs, u1
         insert_cell indices, :diff, x0, y, vs, u1
       else
-       pitch = vs + (w - vs*n)/(n-1)
-       (x0-w/2+vs/2).step(x0+w/2, pitch){|x|
-         insert_cell indices, :via, x, y, vs, u1
-         insert_cell indices, :cnt, x, y, vs, u1
-         insert_cell indices, :diff, x, y, vs, u1
-       }
+        pitch = vs + (w - vs*n)/(n-1)
+        (x0-w/2+vs/2).step(x0+w/2, pitch){|x|
+          insert_cell indices, :via, x, y, vs, u1
+          insert_cell indices, :cnt, x, y, vs, u1
+          insert_cell indices, :diff, x, y, vs, u1
+        }
       end
     end
     
@@ -364,7 +347,7 @@ module Mineda2020_1
             create_contacts indices, rw, x, y, vs, u1
           end
           cell.shapes(indices[:diff]).insert(Path::new(points, rw, 0, 0))
-       
+          
           if prev_x
             y = vs - rw/2
             points = [Point::new(x, y), Point::new(prev_x, y)]
@@ -397,26 +380,6 @@ module Mineda2020_1
       end
     end
 
-=begin       
-       def insert_via_pcont via_index, pcont_index, x, y, rw, vs
-         nv = (rw/vs).to_i
-         #if nv*vs != rw
-         #  nv = nv + 1
-         #end
-         offset = x - (vs*nv - vs)/2
-         for i in 0..nv-1
-           x = offset + i*vs
-           via = instantiate via_index, x, y, cell
-           inst = cell.insert(via)
-           pcont = instantiate pcont_index, x, y, cell
-           inst = cell.insert(pcont)
-         end
-       end
-       
-    def instantiate index, x, y, cell
-      CellInstArray.new(index, Trans.new(x, y))
-    end
-=end
   end
 
   class R_diff &lt; Resistor
@@ -439,190 +402,189 @@ module Mineda2020_1
       end
     end       
     def coerce_parameters_impl
-=begin
-         if n == 1
-           l &lt; 20.0 &amp;&amp; set_l(20.0)
-           l &gt; 80.0 &amp;&amp; set_l(80.0) 
-         else      
-           l/n &lt; 20.0 &amp;&amp; set_n(n-1)
-           l/n &gt; 80.0 &amp;&amp; set_n(n+1)
-         end
-=end
       sheet_resistance = 700.0
       set_rval(sheet_resistance * l / w)
     end
   end
-=begin     
-     class Capacitor &lt; PCellDeclarationHelper
-       
-       include RBA
+  
+  class Capacitor &lt; PCellDeclarationHelper
+    include RBA
 
-       def initialize
+    def initialize
 
-         # Important: initialize the super class
-         super
-         param(:l, TypeDouble, "Capacitor length", :default =&gt; 100.0.um)
-         param(:w, TypeDouble, "Capacitor width", :default =&gt; 100.0.um)
+      # Important: initialize the super class
+      super
+      param(:l, TypeDouble, "Capacitor length", :default =&gt; 100.0.um)
+      param(:w, TypeDouble, "Capacitor width", :default =&gt; 100.0.um)
 
-         param(:cval, TypeDouble, "Capacitor value", :default =&gt; 0, :hidden=&gt; true)
-       end
-       
-       def display_text_impl
-         # Provide a descriptive text for the cell
-         "Capacitor\r\n(L=#{l.to_s}um,W=#{w.to_s}um,C=#{cval})"
-       end
-       
-       def coerce_parameters_impl
-         
-         # We employ coerce_parameters_impl to decide whether the handle or the 
-         # numeric parameter has changed (by comparing against the effective 
-         # radius ru) and set ru to the effective radius. We also update the 
-         # numerical value or the shape, depending on which on has not changed.
-         area_cap = 2.6e-15
-         set_cval(area_cap * l * w)
-       end
-       
-       # default implementation
-       def can_create_from_shape_impl
-         false
-       end
-       
-       def transformation_from_shape_impl
-         # I「Create PCell from shape（形状からPCellを作成）」プロトコルを実装します。
-         # 変形を決定するために、図形のバウンディングボックスの中心を使用します。
-         Trans.new(shape.bbox.center)
-       end
-       
-       def produce_impl
-         cw = (w/layout.dbu).to_i
-         cl = (l/layout.dbu).to_i
+      param(:cval, TypeDouble, "Capacitor value", :default =&gt; 0, :hidden=&gt; true)
+    end
+    
+    def display_text_impl
+      # Provide a descriptive text for the cell
+      "Capacitor\r\n(L=#{l.to_s}um,W=#{w.to_s}um,C=#{cval})"
+    end
+    
+    def coerce_parameters_impl
+      
+      # We employ coerce_parameters_impl to decide whether the handle or the 
+      # numeric parameter has changed (by comparing against the effective 
+      # radius ru) and set ru to the effective radius. We also update the 
+      # numerical value or the shape, depending on which on has not changed.
+      area_cap = 0.566e-15
+      set_cval(area_cap * l * w)
+    end
+    
+    # default implementation
+    def can_create_from_shape_impl
+      false
+    end
+    
+    def transformation_from_shape_impl
+      # I「Create PCell from shape（形状からPCellを作成）」プロトコルを実装します。
+      # 変形を決定するために、図形のバウンディングボックスの中心を使用します。
+      Trans.new(shape.bbox.center)
+    end
+    
+    def produce_impl
+      cw = (w/layout.dbu).to_i
+      cl = (l/layout.dbu).to_i
 
-         grid = 1.0.um
-         u1 = (grid/layout.dbu).to_i
-         s = 2.0.um # via size (fixed)
-         vs = (s/layout.dbu).to_i
-         
-         nwl_index = layout.insert_layer(LayerInfo::new(1, 0))
-         diff_index = layout.insert_layer(LayerInfo::new(3, 0))     
-         pol_index = layout.insert_layer(LayerInfo::new(5, 0))
-         m1_index = layout.insert_layer(LayerInfo::new(8, 0))
-         m2_index = layout.insert_layer(LayerInfo::new(10, 0))
-         cap_index = layout.insert_layer(LayerInfo::new(16, 0))
-         parea_index = layout.insert_layer(LayerInfo::new(18, 0))
-         via_index = library_cell('Via', 'OpenRule1um', layout)
-         pcont_index = library_cell('pcont', 'OpenRule1um', layout)
-         dcont_index = library_cell('dcont', 'OpenRule1um', layout)
-         nsubcont_index = library_cell('nsubcont', 'OpenRule1um', layout)
-         create_box pol_index, 0, 0, u1+vs+u1 + cw, cl
-         create_box diff_index, u1+vs+u1, -u1, u1+vs+u1+ cw+u1, cl+u1+vs+u1
-         create_box parea_index, u1+vs, -2*u1, u1+vs+u1+ cw+2*u1, cl+u1+vs+2*u1
-         create_box nwl_index, -4*u1, -4*u1,  u1+vs+u1+cw + 4*u1, cl + 2*vs +4*u1
-         create_box cap_index, -4*u1, -4*u1,  u1+vs+u1+cw + 4*u1, cl + 2*vs +4*u1
-         create_contacts_vertically pcont_index, u1+vs/2, 0, u1+vs/2, cl, vs
-         create_contacts_horizontally dcont_index, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs
-         insert_cell nsubcont_index, 0, cl+2*u1+vs
+      grid = 1.0.um
+      u1 = (grid/layout.dbu).to_i
+      s = 2.0.um # via size (fixed)
+      vs = (s/layout.dbu).to_i
+      
+      diff_index = layout.insert_layer(LayerInfo::new(3, 0))     
+      m1_index = layout.insert_layer(LayerInfo::new(8, 0))
+      m2_index = layout.insert_layer(LayerInfo::new(10, 0))
+      cap_index = layout.insert_layer(LayerInfo::new(16, 0))
+      parea_index = layout.insert_layer(LayerInfo::new(18, 0))
+      via_index = layout.insert_layer(LayerInfo::new(9, 0))
+      cnt_index = layout.insert_layer(LayerInfo::new(7,0))
+      
+      create_box diff_index, u1+vs+u1, -u1, u1+vs+u1+ cw+u1, cl+u1+vs+u1
+      create_box parea_index, u1+vs, -2*u1, u1+vs+u1+ cw+2*u1, cl+u1+vs+2*u1
+      create_box m1_index, 0, 0, u1+vs+u1 + cw, cl
+      create_box cap_index, 0, 0, u1+vs+u1 + cw, cl 
+      create_contacts_vertically via_index, u1+vs/2, 0, u1+vs/2, cl, vs
+      create_contacts_horizontally cnt_index, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs
+      insert_cell nsubcont_index, 0, cl+2*u1+vs
+      #          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
+      #          cell.shapes(pol_index).insert(Path::new(points, rw, vs, vs))
+      #          cell.shapes(res_index).insert(Path::new(points, rw, vs/4, vs/4))
+    end
+    
+    def create_contacts_horizontally index, x1, y1, x2, y2, vs
+      (x1+vs/2..x2-vs/2).step(vs){|x|
+        insert_cell index, x, y1
+      }
+    end
+    
+    def create_contacts_vertically index, x1, y1, x2, y2, vs
+      (y1+vs/2..y2-vs/2).step(vs){|y|
+        insert_cell index, x1, y
+      }
+    end
+    
+    def create_box index, x1, y1, x2, y2
+      cell.shapes(index).insert(Box::new(x1, y1, x2, y2))
+    end
+    
+    #   def insert_cell via_index, x, y
+    #       via = instantiate via_index, x, y
+    #       inst = cell.insert(via)
+    #     end
+    def insert_cell index, x, y
+      #      via = instantiate via_index, x, y
+      #      inst = cell.insert(via) 
+      grid = 1.0.um
+      u1 = (grid/layout.dbu).to_i
+      s = 2.0.um # via size (fixed)
+      vs = (s/layout.dbu).to_i
+      diff_index = layout.insert_layer(LayerInfo::new(3, 0)) 
+      cnt_index = layout.insert_layer(LayerInfo::new(7,0))
+      m1_index = layout.insert_layer(LayerInfo::new(8, 0))
+      via_index = layout.insert_layer(LayerInfo::new(9, 0))
+      m2_index = layout.insert_layer(LayerInfo::new(10, 0))
+      case index
+      when diff_index
+        create_box diff_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
+        return
+      when via_index
+        create_box m1_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
+        create_box m2_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
+      when cnt_index
+        create_box m1_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
+      end
+      vu2 = vs/2 - u1/2
+      create_box index, x-vu2, y-vu2, x+vu2, y+vu2
+    end
+    
+    def instantiate index, x, y
+      CellInstArray.new(index, Trans.new(x, y))
+    end
+  end
+  
+  class MIM_cap &lt; Capacitor
+    def display_text_impl
+      # Provide a descriptive text for the cell
+      "MIM Capacitor\r\n(L=#{l.to_s}um,W=#{w.to_s}um,C=#{cval})"
+    end
+    
+    def coerce_parameters_impl
+      area_cap = 0.2e-15
+      set_cval(area_cap * l * w)
+    end
+    
+    def produce_impl
+      cw = (w/layout.dbu).to_i
+      cl = (l/layout.dbu).to_i
+      grid = 1.0.um
+      u1 = (grid/layout.dbu).to_i
+      s = 2.0.um # via size (fixed)
+      vs = (s/layout.dbu).to_i
+      m1_index = layout.insert_layer(LayerInfo::new(8, 0))
+      m2_index = layout.insert_layer(LayerInfo::new(10, 0))
+      cap_index = layout.insert_layer(LayerInfo::new(16, 0))
+      via_index = layout.insert_layer(LayerInfo::new(9, 0))
+      cnt_index = layout.insert_layer(LayerInfo::new(7,0))
+      create_box m1_index, 0, 0, u1+vs+u1 + cw, cl
+      create_box cap_index, 0, 0, u1+vs+u1 + cw, cl
+      create_box m2_index, u1+vs+u1, -u1, u1+vs+u1+ cw+u1, cl+u1+vs+u1
+      create_contacts_vertically via_index, u1+vs/2, 0, u1+vs/2, cl, vs
+      create_contacts_horizontally via_index, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs
 
-         #          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
-         #          cell.shapes(pol_index).insert(Path::new(points, rw, vs, vs))
-         #          cell.shapes(res_index).insert(Path::new(points, rw, vs/4, vs/4))
-       end
-       
-       def create_contacts_horizontally index, x1, y1, x2, y2, vs
-         (x1+vs/2..x2-vs/2).step(vs){|x|
-           insert_cell index, x, y1
-         }
-       end
-       
-       def create_contacts_vertically index, x1, y1, x2, y2, vs
-         (y1+vs/2..y2-vs/2).step(vs){|y|
-           insert_cell index, x1, y
-         }
-       end
-       
-       def create_box index, x1, y1, x2, y2
-         cell.shapes(index).insert(Box::new(x1, y1, x2, y2))
-       end
-       
-       def library_cell name, libname, layout
-         if cell = layout.cell(name)
-           return cell.cell_index
-         else
-           lib = Library::library_by_name libname
-           cell_index = lib.layout.cell_by_name(name)
-           proxy_index = layout.add_lib_cell(lib, cell_index)
-         end
-       end
-       
-       def insert_cell via_index, x, y
-         via = instantiate via_index, x, y
-         inst = cell.insert(via)
-       end
-       
-       def instantiate index, x, y
-         CellInstArray.new(index, Trans.new(x, y))
-       end
-     end
-     
-     class CPIP &lt; Capacitor
-       def display_text_impl
-         # Provide a descriptive text for the cell
-         "PIP Capacitor\r\n(L=#{l.to_s}um,W=#{w.to_s}um,C=#{cval})"
-       end
-       
-       def coerce_parameters_impl
-         area_cap = 1.72e-15
-         set_cval(area_cap * l * w)
-       end
-       
-       def produce_impl
-         cw = (w/layout.dbu).to_i
-         cl = (l/layout.dbu).to_i
+      #          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
+      #          cell.shapes(pol_index).insert(Path::new(points, rw, vs, vs))
+      #          cell.shapes(res_index).insert(Path::new(points, rw, vs/4, vs/4))
+    end
+  end
+  
+  class Mineda2020_1 &lt; Library
+    
+    def initialize  
+      
+      # 説明を設定
+      self.description = "PCells"
+      
+      # PCell宣言を作成する
+      # layout.register_pcell("Resistor", Resistor::new)
+      #      layout.register_pcell("Nch", Nch::new)
+      layout.register_pcell("Pch", Pch::new)
+      layout.register_pcell("R_diff", R_diff::new)
+      #      layout.register_pcell("HR_poly", HR_poly::new)
+      layout.register_pcell("MIM_cap", MIM_cap::new)
+      layout.register_pcell("Diff_cap", Capacitor::new)
 
-         grid = 1.0.um
-         u1 = (grid/layout.dbu).to_i
-         s = 2.0.um # via size (fixed)
-         vs = (s/layout.dbu).to_i
-         
-         pol_index = layout.insert_layer(LayerInfo::new(5, 0))
-         cap_index = layout.insert_layer(LayerInfo::new(16, 0))
-         via_index = library_cell('Via', 'OpenRule1um', layout)
-         pcont_index = library_cell('pcont', 'OpenRule1um', layout)
-         create_box pol_index, 0, 0, u1+vs+u1 + cw, cl
-         create_box cap_index, u1+vs+u1, -u1, u1+vs+u1+ cw+u1, cl+u1+vs+u1
-         create_contacts_vertically pcont_index, u1+vs/2, 0, u1+vs/2, cl, vs
-         create_contacts_vertically via_index, u1+vs/2, 0, u1+vs/2, cl, vs
-         create_contacts_horizontally pcont_index, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs
-         create_contacts_horizontally via_index, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs
+      # "Mineda2020_1"という名前で登録します。
+      # その名前のライブラリがすでに存在していた場合は、その時点で置き換えられます。
+      register("PCells_Mineda2020_1")
+    end
+  end
 
-         #          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
-         #          cell.shapes(pol_index).insert(Path::new(points, rw, vs, vs))
-         #          cell.shapes(res_index).insert(Path::new(points, rw, vs/4, vs/4))
-       end
-=end
-     
-     class Mineda2020_1 &lt; Library
-       
-       def initialize  
-         
-         # 説明を設定
-         self.description = "PCells"
-         
-         # PCell宣言を作成する
-         # layout.register_pcell("Resistor", Resistor::new)
-         #      layout.register_pcell("Nch", Nch::new)
-         layout.register_pcell("Pch", Pch::new)
-         layout.register_pcell("R_diff", R_diff::new)
-         #      layout.register_pcell("HR_poly", HR_poly::new)
-         #      layout.register_pcell("Capacitor", Capacitor::new)
-         #      layout.register_pcell("CPIP", CPIP::new)
-
-         # "Mineda2020_1"という名前で登録します。
-         # その名前のライブラリがすでに存在していた場合は、その時点で置き換えられます。
-         register("PCells_Mineda2020_1")
-       end
-     end
-
-     # ライブラリをインスタンス化して登録する
-     Mineda2020_1::new
-   end</text>
+  # ライブラリをインスタンス化して登録する
+  Mineda2020_1::new
+end
+</text>
 </klayout-macro>

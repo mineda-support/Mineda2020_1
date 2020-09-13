@@ -14,9 +14,41 @@
  <menu-path/>
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
- <text># Mineda2020_1 lvs preprocessor v1.51 June 29, 2020 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs preprocessor v1.52 Sep. 11, 2020 copy left by S. Moriyama (Anagix Corporation)
 require 'fileutils'
 require 'yaml'
+def get_params lines
+  p = {}
+  lines.each_line{|l|
+    l.gsub! 00.chr, ''
+    if l.upcase =~/\.PARAM\S* (\S+.*$)/
+      params = $1
+      params.split.each{|equation|
+        equation =~ /(\S+) *= *(\S+)/
+        p[$1] = $2
+      }
+    end
+  }
+  p
+end
+
+def expand_file file, lines
+  # File.open(file, 'r:Windows-1252').read.encode('UTF-8', invalid: :replace).each_line{|l|
+  File.open(file, 'r:Windows-1252').read.encode('UTF-8').gsub(181.chr(Encoding::UTF_8), 'u').each_line{|l|
+    puts "file: #{file}"
+    if l.chop =~ /.inc\S* +(\S+)/
+      include_file = $1
+      lines &lt;&lt; '*' + l
+      if File.exist? include_file
+        lines = expand_file(include_file, lines)
+      end
+    else
+      lines &lt;&lt; l
+    end
+  }
+  lines
+end
+
 module MyMacro
 
   include RBA
@@ -33,16 +65,22 @@ module MyMacro
   Dir.chdir File.dirname(cv.filename).force_encoding('UTF-8')
   ext_name = File.extname cv.filename
   target = File.basename(cv.filename).sub(ext_name, '')
+  schematic = netlist.sub('.net', '.asc')
   reference = "#{target}_reference.cir"
-  ref={'target' =&gt; target, 'reference'=&gt; reference, 'netlist'=&gt; netlist, 'schematic' =&gt; netlist.sub('.net', '.asc')}
+  ref={'target' =&gt; target, 'reference'=&gt; reference, 'netlist'=&gt; netlist, 'schematic' =&gt; schematic}
   File.open(target+'.yaml', 'w'){|f| f.puts ref.to_yaml}
   desc = ''
   cells = []
   circuit_top = nil
   device_class = {}
+  lines = expand_file netlist, ''
+  if File.exist?(schematic) &amp;&amp; (File.mtime(netlist) &lt; File.mtime(schematic))
+    raise "netlist file '#{netlist}' is outdated!\nPlease update netlist and run get_reference again!"
+  end
+  params = get_params lines
   Dir.mkdir 'lvs_work' unless File.directory? 'lvs_work'
   c = File.open(File.join('lvs_work', File.basename(netlist))+'.txt', 'w:UTF-8')
-  File.open(netlist, 'r:Windows-1252').read.encode('UTF-8', invalid: :replace).each_line{|l|
+ lines.each_line{|l|
     l.gsub! 00.chr, ''
     c.puts l
     if l=~ /(\S+)@or1_stdcells_v1/
@@ -52,24 +90,30 @@ module MyMacro
       l.tr! "@%-", "$$_"
     elsif l =~ /^ *\.inc/
       l.sub! /^/, '*'
-    elsif l =~ /^[mM]\S+ *\S+ *\S+ *\S+ *\S+ *(\S+)/
-      device_class['NMOS'] = $1if $1.include? 'n'
-      device_class['PMOS'] = $1if $1.include? 'p'
-      if  l=~/^(([mM]\S)+ *\S+ *\S+ *\S+ *\S+ *\S+ .*)([wW] *= *(\S+)[uU])(.*)[mM] *= *(\S+)/
-        name=$2
-        upto_l_value = $1
-        w_value=$3
-        w=$4.to_f
-        m=$6.to_i
-        others = $5.upcase
-        #if others =~/ ([AP][SD] *=\S+)/ 
-         # param = $1
-         # l.sub! w_value, "w=#{w*m}u"
-         l = "#{upto_l_value}w=#{w*m}u m=1\n"
-          # puts "Caution for #{name}: #{w_value} replaced with w=#{w*m}u because m=#{m} and includes #{param}"
-         puts "Caution for #{name}: #{w_value} replaced with w=#{w*m}u"
-        # end
-      end
+    elsif l=~/^(([mM]\S+) *\S+ *\S+ *\S+ *\S+ *(\S+)) *(.*)/
+      device_class['PMOS'] = $3if $3.include? 'p'
+      body = $1
+      name=$2
+      others = ($4 &amp;&amp; $4.upcase)
+      model = $3
+      # body.sub!(model, 'NMOS') if model &amp;&amp; model.upcase =~ /NCH|NMOS/
+      body.sub!(model, 'PMOS') if model &amp;&amp; model.upcase =~ /PCH|PMOS/
+      p = {}
+      others &amp;&amp; others.split.each{|equation|
+        equation =~ /(\S+) *= *(\S+)/
+        p[$1] = params[$2] || $2
+      }
+      if p['M'] &amp;&amp; p['M'] &gt; "1"
+        if p['W'] =~ /([^U]+) *(U*)/
+          new_w  = "#{$1.to_i * p['M'].to_i}#{$2}"
+          puts "Caution for #{name}: w=#{p['W']} replaced with w=#{new_w} because m=#{p['M']}"
+          p['W'] = new_w
+          p['M'] = '1'
+        end
+      end   
+      others = "l=#{p['L']} w=#{p['W']}" # supress other parameters like as, ps, ad and pd
+      l = "#{body} #{others}\n" # supress others like 'as= xxx ps=xxx'
+      
     elsif circuit_top.nil? &amp;&amp; l=~/^\.subckt *(\S+)/
       circuit_top = $1
       puts "circuit_top: #{circuit_top}"
@@ -124,13 +168,11 @@ module MyMacro
       device_class.each_pair{|p, q|
         f.puts "  same_device_classes '#{p}', '#{q.upcase}'"
       }
-      f.puts "  # same_device_classes 'HRES', 'RES'"
       f.puts "  same_device_classes 'RES', 'RES'"
-      f.puts "  # netlist.flatten_circuit 'Nch*'"
+      f.puts "  tolerance 'RES', 'R', relative: 0.05"
+      f.puts "  tolerance 'CAP', 'C', relative: 0.05"
       f.puts "  same_device_classes 'PMOS', 'YSS_PMOS'"
       f.puts "  netlist.flatten_circuit 'PMOS*'"
-      f.puts "  # netlist.flatten_circuit 'R_poly*'"
-      f.puts "  # netlist.flatten_circuit 'HR_poly*'"
       f.puts "  netlist.combine_devices"
       f.puts "  schematic.combine_devices"
       f.puts 'end'
