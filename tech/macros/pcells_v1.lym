@@ -15,7 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: cp932
-# Mineda2020_1 PCells v0.64 Sep. 11, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.65 Sep. 13, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -30,7 +30,7 @@ module Mineda2020_1
   
   class MinedaPCell &lt;PCellDeclarationHelper
     include RBA
-    def insert_cell indices, index, x, y, vs, u1
+    def insert_cell indices, index, x, y, vs, u1, fill_metal=true
       #      via = instantiate via_index, x, y
       #      inst = cell.insert(via)
       case index
@@ -38,10 +38,14 @@ module Mineda2020_1
         create_box indices[:diff], x-vs/2, y-vs/2, x+vs/2, y+vs/2
         return
       when :via
-        create_box indices[:m1], x-vs/2, y-vs/2, x+vs/2, y+vs/2
-        create_box indices[:m2], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+        if fill_metal
+          create_box indices[:m1], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+          create_box indices[:m2], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+        end
       when :cnt
-        create_box indices[:m1], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+        if fill_metal
+          create_box indices[:m1], x-vs/2, y-vs/2, x+vs/2, y+vs/2
+        end
       end
       vu2 = vs/2 - u1/2
       create_box indices[index], x-vu2, y-vu2, x+vu2, y+vu2
@@ -285,10 +289,12 @@ module Mineda2020_1
       else
         pitch = vs + (w - vs*n)/(n-1)
         (x0-w/2+vs/2).step(x0+w/2, pitch){|x|
-          insert_cell indices, :via, x, y, vs, u1
-          insert_cell indices, :cnt, x, y, vs, u1
-          insert_cell indices, :diff, x, y, vs, u1
+          insert_cell indices, :via, x, y, vs, u1, false
+          insert_cell indices, :cnt, x, y, vs, u1, false
+          insert_cell indices, :diff, x, y, vs, u1, false
         }
+        create_box indices[:m1], x0-w/2, y-vs/2, x0+w/2, y+vs/2
+        create_box indices[:m2], x0-w/2, y-vs/2, x0+w/2, y+vs/2
       end
     end
     
@@ -339,7 +345,11 @@ module Mineda2020_1
           end
           if i == n-1
             #points = [Point::new(x, vs), Point::new(x, vs+r+vs)]
-            points = [Point::new(x, vs-rw), Point::new(x, vs+r+vs)]
+            if i != 0
+              points = [Point::new(x, vs-rw), Point::new(x, vs+r+vs)]
+            else
+              points = [Point::new(x, -rw_ho), Point::new(x, vs+r+vs)]
+            end
             y =  vs+r+vs/2
             #insert_cell indices, :via, x, y, vs, u1
             #insert_cell indices, :cnt, x, y, vs, u1
