@@ -15,7 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: cp932
-# Mineda2020_1 PCells v0.65 Sep. 13, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.66 Sep. 24, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -417,7 +417,7 @@ module Mineda2020_1
     end
   end
   
-  class Capacitor &lt; PCellDeclarationHelper
+  class Capacitor &lt; MinedaPCell
     include RBA
 
     def initialize
@@ -460,9 +460,9 @@ module Mineda2020_1
       cw = (w/layout.dbu).to_i
       cl = (l/layout.dbu).to_i
 
-      grid = 1.0.um
+      grid = 4.0.um
       u1 = (grid/layout.dbu).to_i
-      s = 2.0.um # via size (fixed)
+      s = 12.0.um # via size (fixed)
       vs = (s/layout.dbu).to_i
       
       diff_index = layout.insert_layer(LayerInfo::new(3, 0))     
@@ -472,63 +472,36 @@ module Mineda2020_1
       parea_index = layout.insert_layer(LayerInfo::new(18, 0))
       via_index = layout.insert_layer(LayerInfo::new(9, 0))
       cnt_index = layout.insert_layer(LayerInfo::new(7,0))
-      
+      indices = {diff: diff_index, m1: m1_index, m2: m2_index, 
+                 via: via_index, cnt: cnt_index}
       create_box diff_index, u1+vs+u1, -u1, u1+vs+u1+ cw+u1, cl+u1+vs+u1
       create_box parea_index, u1+vs, -2*u1, u1+vs+u1+ cw+2*u1, cl+u1+vs+2*u1
       create_box m1_index, 0, 0, u1+vs+u1 + cw, cl
       create_box cap_index, 0, 0, u1+vs+u1 + cw, cl 
-      create_contacts_vertically via_index, u1+vs/2, 0, u1+vs/2, cl, vs
-      create_contacts_horizontally cnt_index, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs
-      insert_cell nsubcont_index, 0, cl+2*u1+vs
+      create_contacts_vertically indices, :via, u1+vs/2, 0, u1+vs/2, cl, vs, u1
+      create_contacts_horizontally indices, :cnt, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs, u1
+      # insert_cell indices, nsubcont_index, 0, cl+2*u1+vs, vs, u1
+      insert_cell indices, :diff, 0, cl+2*u1+vs, vs, u1
+      insert_cell indices, :cnt, 0, cl+2*u1+vs, vs, u1
       #          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
       #          cell.shapes(pol_index).insert(Path::new(points, rw, vs, vs))
       #          cell.shapes(res_index).insert(Path::new(points, rw, vs/4, vs/4))
     end
     
-    def create_contacts_horizontally index, x1, y1, x2, y2, vs
+    def create_contacts_horizontally indices, index, x1, y1, x2, y2, vs, u1
       (x1+vs/2..x2-vs/2).step(vs){|x|
-        insert_cell index, x, y1
+        insert_cell indices, index, x, y1, vs, u1
       }
     end
     
-    def create_contacts_vertically index, x1, y1, x2, y2, vs
+    def create_contacts_vertically indices, index, x1, y1, x2, y2, vs, u1
       (y1+vs/2..y2-vs/2).step(vs){|y|
-        insert_cell index, x1, y
+        insert_cell indices, index, x1, y, vs, u1
       }
     end
     
     def create_box index, x1, y1, x2, y2
       cell.shapes(index).insert(Box::new(x1, y1, x2, y2))
-    end
-    
-    #   def insert_cell via_index, x, y
-    #       via = instantiate via_index, x, y
-    #       inst = cell.insert(via)
-    #     end
-    def insert_cell index, x, y
-      #      via = instantiate via_index, x, y
-      #      inst = cell.insert(via) 
-      grid = 1.0.um
-      u1 = (grid/layout.dbu).to_i
-      s = 2.0.um # via size (fixed)
-      vs = (s/layout.dbu).to_i
-      diff_index = layout.insert_layer(LayerInfo::new(3, 0)) 
-      cnt_index = layout.insert_layer(LayerInfo::new(7,0))
-      m1_index = layout.insert_layer(LayerInfo::new(8, 0))
-      via_index = layout.insert_layer(LayerInfo::new(9, 0))
-      m2_index = layout.insert_layer(LayerInfo::new(10, 0))
-      case index
-      when diff_index
-        create_box diff_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
-        return
-      when via_index
-        create_box m1_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
-        create_box m2_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
-      when cnt_index
-        create_box m1_index, x-vs/2, y-vs/2, x+vs/2, y+vs/2
-      end
-      vu2 = vs/2 - u1/2
-      create_box index, x-vu2, y-vu2, x+vu2, y+vu2
     end
     
     def instantiate index, x, y
@@ -550,20 +523,22 @@ module Mineda2020_1
     def produce_impl
       cw = (w/layout.dbu).to_i
       cl = (l/layout.dbu).to_i
-      grid = 1.0.um
+      grid = 4.0.um
       u1 = (grid/layout.dbu).to_i
-      s = 2.0.um # via size (fixed)
+      s = 12.0.um # via size (fixed)
       vs = (s/layout.dbu).to_i
       m1_index = layout.insert_layer(LayerInfo::new(8, 0))
       m2_index = layout.insert_layer(LayerInfo::new(10, 0))
       cap_index = layout.insert_layer(LayerInfo::new(16, 0))
       via_index = layout.insert_layer(LayerInfo::new(9, 0))
       cnt_index = layout.insert_layer(LayerInfo::new(7,0))
-      create_box m1_index, 0, 0, u1+vs+u1 + cw, cl
-      create_box cap_index, 0, 0, u1+vs+u1 + cw, cl
-      create_box m2_index, u1+vs+u1, -u1, u1+vs+u1+ cw+u1, cl+u1+vs+u1
-      create_contacts_vertically via_index, u1+vs/2, 0, u1+vs/2, cl, vs
-      create_contacts_horizontally via_index, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs
+      indices = {m1: m1_index, m2: m2_index, 
+                 via: via_index, cnt: cnt_index}
+      create_box m1_index, 0, 0, vs +vs+u1 + u1/2 + cw, cl
+      create_box cap_index, 0, 0, vs+vs+u1 + u1/2 + cw, cl
+      create_box m2_index, u1+vs+u1+ u1 + u1/2, -u1, u1+vs+u1+ cw+u1 + u1 + u1/2, cl+u1+vs+u1
+      create_contacts_vertically indices, :via, u1+vs/2, 0, u1+vs/2, cl, vs, u1
+      create_contacts_horizontally indices, :via, u1+vs+u1+ u1 + u1/2,  cl + u1+vs/2, u1+vs+u1+ cw + u1 + u1 + u1/2, cl + u1+vs/2, vs, u1
 
       #          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
       #          cell.shapes(pol_index).insert(Path::new(points, rw, vs, vs))
