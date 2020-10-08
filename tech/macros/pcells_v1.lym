@@ -15,7 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: cp932
-# Mineda2020_1 PCells v0.66 Sep. 24, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.67 Oct. 8, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -368,7 +368,7 @@ module Mineda2020_1
           points = [Point::new(offset, vs+(sl-r)), Point::new(offset, vs+sl)]
           cell.shapes(indices[:res]).insert(Path::new(points, rw, 0, 0))
           if i == n-1
-            points = [Point::new(offset, ls-r), Point::new(offset, vs+sl)]
+            points = [Point::new(offset, sl-r), Point::new(offset, vs+sl)]
             x = offset
             y = vs+sl-r-vs/2
             #insert_cell indices, :via, x, y, vs, u1
