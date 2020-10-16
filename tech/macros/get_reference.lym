@@ -14,7 +14,7 @@
  <menu-path/>
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
- <text># Mineda2020_1 lvs preprocessor v1.52 Sep. 11, 2020 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs preprocessor v1.53 Oct. 15, 2020 copy left by S. Moriyama (Anagix Corporation)
 require 'fileutils'
 require 'yaml'
 def get_params lines
@@ -82,22 +82,21 @@ module MyMacro
   c = File.open(File.join('lvs_work', File.basename(netlist))+'.txt', 'w:UTF-8')
  lines.each_line{|l|
     l.gsub! 00.chr, ''
+    l.tr! "@%-", "$$_"
     c.puts l
     if l=~ /(\S+)@or1_stdcells_v1/
       cells &lt;&lt; $1 unless cells.include? $1
       l.sub! '@', '$'
-    elsif l =~ /[@%-]/
-      l.tr! "@%-", "$$_"
-    elsif l =~ /^ *\.inc/
+    elsif l =~ /^ *\.inc/ || l =~ /^ *([iI]|[vV])/
       l.sub! /^/, '*'
     elsif l=~/^(([mM]\S+) *\S+ *\S+ *\S+ *\S+ *(\S+)) *(.*)/
-      device_class['PMOS'] = $3if $3.include? 'p'
+      # device_class['PMOS'] = $3 if $3.include? 'p'
       body = $1
       name=$2
       others = ($4 &amp;&amp; $4.upcase)
       model = $3
       # body.sub!(model, 'NMOS') if model &amp;&amp; model.upcase =~ /NCH|NMOS/
-      body.sub!(model, 'PMOS') if model &amp;&amp; model.upcase =~ /PCH|PMOS/
+      # body.sub!(model, 'PMOS') if model &amp;&amp; model.upcase =~ /PCH|PMOS/
       p = {}
       others &amp;&amp; others.split.each{|equation|
         equation =~ /(\S+) *= *(\S+)/
