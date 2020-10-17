@@ -15,7 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: cp932
-# Mineda2020_1 PCells v0.67 Oct. 8, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.68 Oct. 17, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -462,6 +462,7 @@ module Mineda2020_1
 
       grid = 4.0.um
       u1 = (grid/layout.dbu).to_i
+      u2 = u1 + u1
       s = 12.0.um # via size (fixed)
       vs = (s/layout.dbu).to_i
       
@@ -474,12 +475,12 @@ module Mineda2020_1
       cnt_index = layout.insert_layer(LayerInfo::new(7,0))
       indices = {diff: diff_index, m1: m1_index, m2: m2_index, 
                  via: via_index, cnt: cnt_index}
-      create_box diff_index, u1+vs+u1, -u1, u1+vs+u1+ cw+u1, cl+u1+vs+u1
-      create_box parea_index, u1+vs, -2*u1, u1+vs+u1+ cw+2*u1, cl+u1+vs+2*u1
-      create_box m1_index, 0, 0, u1+vs+u1 + cw, cl
-      create_box cap_index, 0, 0, u1+vs+u1 + cw, cl 
-      create_contacts_vertically indices, :via, u1+vs/2, 0, u1+vs/2, cl, vs, u1
-      create_contacts_horizontally indices, :cnt, u1+vs+u1,  cl + u1+vs/2, u1+vs+u1+ cw, cl + u1+vs/2, vs, u1
+      create_box diff_index, u2 + vs, -u1, u2+vs+ cw, cl+u2+vs
+      create_box parea_index, u1 + vs, -u2, u2+vs + cw + u1, cl + u1 + vs + u2
+      create_box m1_index, 0, 0, u2 + vs + cw + u1, cl
+      create_box cap_index, u2 + vs, 0, u2 + vs + cw, cl 
+      create_contacts_vertically indices, :via, u1 + vs/2, 0, u1+ vs/2, cl, vs, u1
+      create_contacts_horizontally indices, :cnt, u2 + vs,  cl + u1+ vs/2, u1 + vs + cw, cl + u1+ vs/2, vs, u1
       # insert_cell indices, nsubcont_index, 0, cl+2*u1+vs, vs, u1
       insert_cell indices, :diff, 0, cl+2*u1+vs, vs, u1
       insert_cell indices, :cnt, 0, cl+2*u1+vs, vs, u1
@@ -525,6 +526,7 @@ module Mineda2020_1
       cl = (l/layout.dbu).to_i
       grid = 4.0.um
       u1 = (grid/layout.dbu).to_i
+      u2 = u1 + u1
       s = 12.0.um # via size (fixed)
       vs = (s/layout.dbu).to_i
       m1_index = layout.insert_layer(LayerInfo::new(8, 0))
@@ -535,10 +537,11 @@ module Mineda2020_1
       indices = {m1: m1_index, m2: m2_index, 
                  via: via_index, cnt: cnt_index}
       create_box m1_index, 0, 0, vs +vs+u1 + u1/2 + cw, cl
-      create_box cap_index, 0, 0, vs+vs+u1 + u1/2 + cw, cl
-      create_box m2_index, u1+vs+u1+ u1 + u1/2, -u1, u1+vs+u1+ cw+u1 + u1 + u1/2, cl+u1+vs+u1
+      create_box cap_index, u1+vs+ u2+u1/2, 0, vs+vs + u1/2 + cw, cl
+      create_box m2_index, u1+vs+u2 + u1/2, -u1, u1+vs+u1+ cw+u1 + u1/2, cl+u2+vs
       create_contacts_vertically indices, :via, u1+vs/2, 0, u1+vs/2, cl, vs, u1
-      create_contacts_horizontally indices, :via, u1+vs+u1+ u1 + u1/2,  cl + u1+vs/2, u1+vs+u1+ cw + u1 + u1 + u1/2, cl + u1+vs/2, vs, u1
+      create_contacts_horizontally indices, :via, u1+vs+u2 + u1/2,  cl + u1+vs/2, 
+                                                               u2+vs + cw + u1 + u1/2, cl + u1+vs/2, vs, u1
 
       #          points = [Point::new(offset, vs), Point::new(offset, vs/2+r)]
       #          cell.shapes(pol_index).insert(Path::new(points, rw, vs, vs))
