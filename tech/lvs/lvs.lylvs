@@ -14,7 +14,7 @@
  <menu-path>tools_menu.lvs.end</menu-path>
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>lvs-dsl-xml</dsl-interpreter-name>
- <text># Mineda2020_1 lvs rule v1.57 Oct. 16, 2020 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs rule v1.58 Oct. 21, 2020 copy left by S. Moriyama (Anagix Corporation)
 #target(source.path.sub('.gds', '_pgate.gds')) # debug output
 deep
 report_lvs
@@ -100,62 +100,25 @@ lv_pgate = pgate - new_diff
 #lv_pgate.output(8, 0)
 #parea.output(18, 0)
 psd         = pdiff - lv_pgate
-#psd.output(3, 0) 
-# hv_psd      = psd &amp; thickox
-# lv_psd      = psd - thickox
 
-#diff_outside_nwl = diff - nwl
-#ndiff      = diff_outside_nwl - parea
-#ndiff      = diff_outside_nwl &amp; narea
-#ngate      = ndiff &amp; pol_not_res 
-#nsd        = ndiff - ngate
-#ptie       = diff_outside_nwl &amp; dm_pscn #&amp; parea
-# hv_ngate   = ngate &amp; thickox
-# lv_ngate   = ngate - hv_ngate
-#lv_ngate = ngate
-# hv_nsd     = nsd &amp; thickox
-# lv_nsd     = nsd - thickox
+ml1_MIMcap = (ml1 &amp; ml2).overlapping(cap).outside(via1 + cnt)
+ml2_MIMcap = ml2 &amp; cap
 
-# Device extraction  
-=begin
-# Capacitor extraction
-area_cap = 1.72e-15
-model_name = 'CAP'
-extract_devices(capacitor(model_name, area_cap), {'P1'=&gt;pol_overlapping_cap, 'P2'=&gt; cap})                         
-resistance extraction
-
-model_name = "D"
-pplus = (diff_in_nwl &amp; parea )  - (pgate + psd)
-extract_devices(diode(model_name), { "P" =&gt; pplus, "N" =&gt; nwl , 'tA' =&gt; cnt,  'tC' =&gt; cnt})
-
-sheet_rho = 20.0
-model_name = "RES"
-bbox = (res | cnt).extents
-cap_layer = bbox - res
-extract_devices(resistor(model_name, sheet_rho), {"R" =&gt;  pol_in_res, "C" =&gt; cap_layer,
-                                                                'tA' =&gt; pol_not_res, 'tB'=&gt;pol_not_res  })# &amp; pol &amp; via1 &amp; ml1})
-sheet_rho = 700.0
-model_name = "HRES"
-bbox = (res | cnt).extents
-cap_layer = bbox - res
-extract_devices(resistor(model_name, sheet_rho), {"R" =&gt;  hpol_in_res, "C" =&gt;cap_layer,  'tA' =&gt; hpol_not_res, 'tB'=&gt;hpol_not_res  })
-
-# PMOS transistor device extraction
-extract_devices(mos4("PMOS"), { "SD" =&gt; psd, "G" =&gt; lv_pgate, "W" =&gt; nwl, 
-                                "tS" =&gt; psd, "tD" =&gt; psd, "tG" =&gt;pol_not_res, "tW" =&gt; nwl })
-# NMOS transistor device extraction
-extract_devices(mos4("NMOS"), { "SD" =&gt; nsd, "G" =&gt; lv_ngate, "W" =&gt; bulk, 
-                                "tS" =&gt; nsd, "tD" =&gt; nsd, "tG" =&gt;pol_not_res, "tW" =&gt; bulk })
-=end
+diff_DIFFcap = (diff &amp; ml1).overlapping(cap).outside(via1 + cnt)
+diff_DIFFarea = diff.overlapping(cap)
+ml1_DIFFcap = ml1 &amp; cap
 
 # Capacitor extraction
 area_cap = 0.2e-15
 model_name = 'CAP'
-extract_devices(capacitor(model_name, area_cap), {'P1'=&gt;ml1, 'P2'=&gt; ml2_cap}) 
+# extract_devices(capacitor(model_name, area_cap), {'P1'=&gt;ml1, 'P2'=&gt; ml2_cap}) 
+extract_devices(capacitor(model_name, area_cap), {'P1'=&gt;ml2_MIMcap, 'P2'=&gt; ml1_MIMcap}) 
 
 # model_name = 'DCAP'
 area_cap = 0.566e-15
-extract_devices(capacitor(model_name, area_cap), {'P1'=&gt;diff_overlapping_cap, 'P2'=&gt; cap})                    
+# extract_devices(capacitor(model_name, area_cap), {'P1'=&gt;diff_overlapping_cap, 'P2'=&gt; cap})                    
+extract_devices(capacitor(model_name, area_cap), {'P1'=&gt;diff_DIFFcap, 'P2'=&gt; ml1_DIFFcap})
+
 # resistance extraction
 
 # Resistor extraction
@@ -183,9 +146,16 @@ connect(cap_layer, ml1)
 #connect(hpol_not_res, cnt)
 #connect(pol_overlapping_cap, cnt)
 #connect(ml2_overlapping_cap, via1)
-connect(ml2_cap, ml2)
+#connect(ml2_cap, ml2)
 connect(diff_overlapping_cap, cnt)
 connect(cap, cnt)
+
+connect(ml2_MIMcap , ml2)
+connect(ml1_MIMcap , ml1)
+
+connect(ml1_DIFFcap,ml1)
+connect(diff_DIFFcap, diff_DIFFarea)
+connect(diff_DIFFarea,cnt)
 
 connect(cnt, ntie)
 #connect(nwl,   ntie)

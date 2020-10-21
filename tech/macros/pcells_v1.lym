@@ -15,7 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: cp932
-# Mineda2020_1 PCells v0.68 Oct. 17, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.69 Oct. 21, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -476,7 +476,7 @@ module Mineda2020_1
       indices = {diff: diff_index, m1: m1_index, m2: m2_index, 
                  via: via_index, cnt: cnt_index}
       create_box diff_index, u2 + vs, -u1, u2+vs+ cw, cl+u2+vs
-      create_box parea_index, u1 + vs, -u2, u2+vs + cw + u1, cl + u1 + vs + u2
+      # create_box parea_index, u1 + vs, -u2, u2+vs + cw + u1, cl + u1 + vs + u2
       create_box m1_index, 0, 0, u2 + vs + cw + u1, cl
       create_box cap_index, u2 + vs, 0, u2 + vs + cw, cl 
       create_contacts_vertically indices, :via, u1 + vs/2, 0, u1+ vs/2, cl, vs, u1
