@@ -15,7 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># coding: cp932
-# Mineda2020_1 PCells v0.69 Oct. 21, 2020 copy left by S. Moriyama (Anagix Corporation)
+# Mineda2020_1 PCells v0.691 Nov. 5, 2020 copy left by S. Moriyama (Anagix Corporation)
 module Mineda2020_1
 
   include RBA
@@ -401,7 +401,7 @@ module Mineda2020_1
       param(:n, TypeInt, "Number of maximum stripes", :default =&gt; 1)
       param(:s, TypeDouble, "Space between stripes", :default =&gt; 4.0.um)
       param(:m, TypeDouble, "Maximum stripe length", :default =&gt; 1000.0.um)
-      param(:ho, TypeBoolean, "Headers outside?", :default =&gt; false)
+      param(:ho, TypeBoolean, "Head outside?", :default =&gt; false)
       param(:rval, TypeDouble, "Resistor value", :default =&gt; 0, :hidden=&gt; true)
     end
     def display_text_impl
