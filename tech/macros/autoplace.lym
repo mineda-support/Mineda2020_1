@@ -100,7 +100,7 @@
       case sym
           #     when 'NMOS@OR1LIB'
           # index = nch_index
-      when 'PMOS@YSS_PMOS', 'YSS_PMOS\\\\PMOS'
+      when 'PMOS@YSS_PMOS', 'YSS_PMOS\\\\PMOS', 'YSS_PMOS\\\\PMOS_MIN'
         index = pch_index
       end
       mos = instantiate index, 0, 0
