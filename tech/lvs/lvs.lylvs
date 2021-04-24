@@ -14,7 +14,7 @@
  <menu-path>tools_menu.lvs.end</menu-path>
  <interpreter>dsl</interpreter>
  <dsl-interpreter-name>lvs-dsl-xml</dsl-interpreter-name>
- <text># Mineda2020_1 lvs rule v1.6 Apr. 24, 2021 copy left by S. Moriyama (Anagix Corporation)
+ <text># Mineda2020_1 lvs rule v1.61 Apr. 25, 2021 copy left by S. Moriyama (Anagix Corporation)
 #target(source.path.sub('.gds', '_pgate.gds')) # debug output
 deep
 report_lvs
@@ -176,7 +176,7 @@ lvs_work = File.join(sdir, 'lvs_work')
 reference = File.join(lvs_work, "#{target}_reference.cir.txt")
 if !File.exist?(reference) || File.symlink?(reference)
   reference = File.join(sdir, "#{target}_reference.cir")
-+lse
+end
 output = File.join sdir, "#{target}_output.cir"
 
 Dir.mkdir lvs_work unless File.directory? lvs_work
@@ -214,7 +214,7 @@ if File.exist? reference
   slink = "#{lvs_work}/#{File.basename output}.txt"
   File.delete slink if File.exist?(slink)
   if /mswin32|mingw/ =~ RUBY_PLATFORM
-    File.link output, slink
+    File.link output, slink if File.exist? output
   else
     File.symlink "../#{File.basename output}", slink
   end
