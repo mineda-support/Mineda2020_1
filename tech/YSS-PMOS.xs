@@ -43,7 +43,9 @@ ml2    = layer("10/0").inverted
 #mline = ml12.inverted
 parea  = layer("18/0")
 
-unless pdiff = layer("21/0")
+pdiff = layer("21/0")
+puts "pdiff='#{pdiff}', data.size=#{pdiff.data.size}"
+if pdiff.data.size == 0
   pdiff  = diff # after diff_cut
 end
 
