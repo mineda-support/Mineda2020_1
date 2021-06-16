@@ -1,7 +1,7 @@
-# YSS-PMOS.xs v0.1 by Swear Takahashi May 31st, 2021
-#             v0.2 by S. Moriyama June 2nd, 2021
-#              - added diff_cut check 
-#
+# YSS-PMOS.xs v0.1 by Swear Takahashi June 2nd, 2021
+#             v0.2 by S. Moriyama June 4th, 2021
+#              - pick preprocessed converted layers for designer GDS
+#              - work with production GDS
 # PMOS process description demonstrating:
 # - Source/Drain diffusion
 # - Al Gate formation
