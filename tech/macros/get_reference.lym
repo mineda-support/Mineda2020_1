@@ -15,6 +15,7 @@
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
  <text># Mineda2020_1 lvs preprocessor v1.54 Apr. 24, 2021 copy left by S. Moriyama (Anagix Corporation)
+#     V1.55 July 10th, 2021: .global 0 inserted at the end of the netlist
 require 'fileutils'
 require 'yaml'
 def get_params lines
@@ -123,10 +124,15 @@ module MyMacro
         }
         desc = new_desc
       end
+      break if l.upcase.strip == '.END'
       desc &lt;&lt; l.upcase
     }
     c.close
-    File.open(reference, 'w:UTF-8'){|f| f.puts desc}
+    File.open(reference, 'w:UTF-8'){|f| 
+      f.puts desc
+      f.puts '.GLOBAL 0'
+      f.puts '.END'
+    }
     slink = File.join('lvs_work', reference+'.txt')
     File.delete slink if File.exist?(slink)
     if /mswin32|mingw/ =~ RUBY_PLATFORM
