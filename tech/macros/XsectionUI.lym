@@ -14,7 +14,7 @@
  <menu-path/>
  <interpreter>ruby</interpreter>
  <dsl-interpreter-name/>
- <text># XsectionUI for Mineda2020_1 v0.3 by S. Moriyama June 16th, 2021
+ <text># XsectionUI for Mineda2020_1 v0.31 by S. Moriyama Aug. 29, 2021
 module MyMacro
   include RBA
   eng = DRC::DRCEngine::new
@@ -43,7 +43,7 @@ module MyMacro
        pdiff.output(21,0)
      end
   end
-  eng._finish
+  eng._finish(false)
   
   mw = Application.instance.main_window
   # layout_view = LayoutView::current
